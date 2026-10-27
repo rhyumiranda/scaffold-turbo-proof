@@ -1,0 +1,32 @@
+// Throwaway acceptance test file: realistic secrets that must be blocked.
+export const awsAccessKeyId = 'AKIAIOSFODNN7EXAMPLE';
+export const awsSecretAccessKey = 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY';
+export const githubToken = 'ghp_9fyjiIX1QXWzSJGjLHhwLykpwjOzc8M1S9nD';
+export const databaseUrl = 'postgresql://user:password@host/db';
+export const privateKey = `-----BEGIN RSA PRIVATE KEY-----
+MIIEpQIBAAKCAQEAtlzhdiTd6S5bAyjvlmyjRb8eRR4EYMK5AlZjN0BXCOKznEN2
+CbZ4Fl3MpyipO/nZm4u8OgFj7rqvE3EWSbo9+Xu6Q1AJHA/99KnggY3jUlmdV2AY
+o8KXp64h6AZt3t1UX4MJfEnowHEzVjXFXTIsNwMyJMh7sq5ZAKloFkcAogEVravI
+/s/whEUL3nsCmIY2x7YKKapdsk1Sgn12i/FPlGQZOtLgMBg5+NxMNY0mIhpFF7fg
+rrgDNNw+XOEqlB3Ae37U24mwGoc77xEiX8zqvbYqSSO7DDLB/4eI83HfHcFjfP8L
+0a7lGucE0I19GkzU77ZNaeuNcr8AbUCL51M1JQIDAQABAoIBAFo0w4oPXn3T4k1D
+2I/OGU2M5kpGOOAsMhwH43gXKXZJvZLUg/T1/50AtRUStfPm+U9J5cfDnE0gpy20
+yNObfsCEBXT6iCcLehGmXll3eDTqAzyPWmDXBvF432jIlVyimvPL+8sxPCLFXCGO
+45vgD6L+v7UWPqn6OChtpAExCg0YKk7Fx/ZzRQi+uc8G3lZuCklB5WSTeg8kcsb3
+u0IDVy/n11WNl6YpbvhXu9pVLzQDOOIKiIE1ZV1h+CefoGPCOvuYXaSBiMKM2JfC
+pJ5LEHhMFkUJ68liuXi7zY6knUuh/am/jJaBwPXkrZ3pfDLo4N2xPvQ0nmJ/cmqv
+HKljcxkCgYEA4X+e+Qg8BY9DANcvzqM5rtOsxnqUbsVU1bYOE50FBwkl18+Js6kD
+MX77uDy6R6s42V5J2lE4baYwsX92bEnNAcaY9ZQLXPkb+/ykdC4YDt0XneQQJrWo
+kw21gD29GhhalKn+4DT0vCQXtddgC9x05Chmo9+5TrW7nM8RkDE+zt8CgYEAzweX
+eaYZZPaW2M52c3xpOPl7y42oyzoebLGQ5h4kMwnyqDmbey6lC//1zZ5RUSYTnzOp
+a68OzAIAPVzXm/GhAK2jUtW44LRd2QPBmaOhAAzOQbaeKaAiZW/oQOJqro990ytn
+eWlY/FFv1uevaGTceaBc8I14DG01gtdMGKAkMHsCgYEAgAVrZKjnIqTl/lks3BzR
+B89G/Nvk30qK0lXsgfgYPZlU8cPywpwGoxgbospfW4b63HVqalbIOYArjun1ep8f
+k42Dk5C8LsmCuLoDR65PnEirOsma3c8uaGZVD/x9Go6PBm3ItNN7ykCXcXZYIgPE
+HTBOrWS7mNMWM31f1EQRC3MCgYEAiGkqJ5+H7/yCnEw9xA5fjojkRtUKOQ4MafX9
+0YJeu7p8RtfeWKX9XhDDNz5vuhZqq2Vw5mEsUMOowMXh0wC84yOGD9h+vqBZjdpp
+wAAO32eQp7/aKvc2crvvvoDxZh9p+rAIt/jwByDpniJ+czyyAPnnAyFTzmxO6+1M
+WJV8Au0CgYEAt1K0gtazHmVs9csokGTG/N/9aRxeXz+5LgsTSiYu2PW7b8IXvkGE
+Us1svG8BxanDohZxyxVJ1or/UQtGY8qjaE3VBgg4vBY3rAQS6YsTnYfDlKkC7QDf
+20nmCrzYrvcR9Wr7EgtkFEqswG+NqJVMRnuDHblzSMH/QgODmh65MA0=
+-----END RSA PRIVATE KEY-----`;
