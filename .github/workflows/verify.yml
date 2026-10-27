@@ -70,7 +70,7 @@ jobs:
       - run: pnpm --filter @repo/api test:container
       - run: pnpm --filter @repo/web test:container
       - name: SBOMs for both runtime images
-        run: pnpm sbom
+        run: pnpm run sbom
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: sbom
