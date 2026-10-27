@@ -1,0 +1,32 @@
+// Throwaway acceptance test file (AC-24): realistic secrets that must be blocked.
+export const awsAccessKeyId = 'AKIAIOSFODNN7EXAMPLE';
+export const awsSecretAccessKey = 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY';
+export const githubToken = 'ghp_0CMWjk1vo1vlOC7Gdk554y35f8WlTIptp3Eh';
+export const databaseUrl = 'postgresql://user:password@host/db';
+export const privateKey = `-----BEGIN RSA PRIVATE KEY-----
+MIIEpQIBAAKCAQEAthmcuoTHY4KC1hl0WL3z46Y4CnLhgJbGlVPW/GpnTMK6tjwl
+0PO1asZz4OqaDkobfI4scsocPxgRk6lxhdmSPfXNGq/X8LcWQFlMuNljXEvjtBGI
+UHAvyi6hlr4FaRtWb9qztxfem0cpOArr0BsM540RMASM2eOYf9YqJEl9C+0ARhH6
+YeSLo/KfpDcDb0lFtBi+TCGKAcyJFSbWcB5/H1Z1J/4zqZqb8a1QLO3p5exuowhH
++DOKTVIf8Q5tNS3uYfMJh0EBUc/8W6SNCy2FEdiT2S2m+b134DxtkqgBj/KjsbYB
++KwgUdp7MDiPiavaj83bKkvuAI6Ebhqz8IWECQIDAQABAoIBAQCVkMvN1qj97oAP
+4bBSAxKCdE+rJVhaCXzpwYbeo3Zc8cPxUc2tpb3oCT+8CHSoL+4Li6quTZqNp/Mn
+2RBI477d7TmdJbizGW3JRI9jdAnMEPjhOVVA3CQkZ9CIw2ImRjHkhTj+tTg9SWFt
+imrM7qrWtGLdkZ8uh2UF+p16WHHAjG+IMajvJGhPIrOJ2T0Dti3PiB6ixzlygAM0
+ZBf453UkpYxNMfVO07QeumgfqBp0uyj5MIiUMwr8hmbJRIH8koveQKXrSnM9aNwN
+42V7m8krhCZ6rzOqb9CBEI/qHiRQe6NaQAXB2tCQ9q67udqF3rYvVXQp/muVjlLR
+RnEQbvkRAoGBAPKmaPlWk6jLDqc9db+FqW/zffwvc/kw4AXy6i7JQJseNPzKJwDH
+xYN4JGgpAgclCtuMNfMQqQTz7aj/nYoambw86i4Z8BzrkQQPaLUveA/8bysvYpAb
+c2mCxx7KOg5/JGbwo5YGCwFQtZvb4Rz4qsyN1Tq4nEMZUb/hbZiQBODjAoGBAMAe
+Y7ImUrIrCfd3dDTNqd9GaDPNUmdbByf4j0XAeaVSQN+h5WqeENDITKBJZPXs2x4S
+1qkeRg8ZzyIK5dj1iZkAURHajChVS6bTavLRwOMGKugvBrxsK2BLm+vAqHkwMdhv
+Gjimvd+K/gcYpJPNSK2bCVTxNTSYi//FkdXGbjcjAoGBANhykNk53WWIHH4aWNqL
+BGWUsiEuwyjZ7DviP/uUEklMXL/SI5CSoyFvHiq7yc9Nv62wGL/FcL+2R52kxobW
+y6QaQlr1UDa7+xPAGwrkWRkJeLDxB968XesUeUKB6d/ckkAxD/tXUKHPuPBa5yfM
+ua7WJgrHerxv7XhYQkcA0Rk5AoGAC1C+5ntDW6MVTzIF8iY63x+ye3qYY+YEoeIN
+7jnL8GTL1WAftwvgSavCd55bB/EPZtINOqDB15nZjVO+/exYUl6mZ7rLjoSXlBfX
+sL2R8s0mMc6zQt3MIDvTzyrlwV2JUgoZLUUE4em51IkrCFmK8k6zWgFq9NIXTNVC
+JakuTKkCgYEA38qGwGtRPz8gWKr8CZ47wsMxRZ/N3fdAFhfmSMfnVcMXfLymat9i
+LS1BRnzEIx/fT8MXfhTkGJsQQDlpWWhIuIHxxQUe4V3r3pkN0DfO1vyNTv9L8bg6
+vsNsl2+uRE/uVt8O/Rk2f3bQZ17Dvgr2axhWSbeLP14lQKKzbRHa9+s=
+-----END RSA PRIVATE KEY-----`;
