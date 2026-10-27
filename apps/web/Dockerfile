@@ -3,7 +3,7 @@
 #   docker build -f apps/web/Dockerfile --secret id=next_action_key,env=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY \
 #     --build-arg APP_DEPLOYMENT_ID=<release> --build-arg DEPLOYMENT_REPLICAS=<n> .
 # Next.js embeds that key in the server bundle, so treat the web image as secret-bearing (see docs/operations.md).
-FROM node:24.22.1-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS tools
+FROM node:26.12.1-alpine@sha256:40cd011b55415bc894e45b02fdd5a5dfde056921b7d23a64c74f80497af48797 AS tools
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 # Corepack verifies the pinned pnpm release and runs no install scripts (see apps/api/Dockerfile).
 RUN corepack enable pnpm && corepack prepare pnpm@12.15.0 --activate && npm install --global --ignore-scripts turbo@2.11.10
@@ -24,7 +24,7 @@ ARG DEPLOYMENT_REPLICAS=1
 RUN --mount=type=secret,id=next_action_key,env=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY \
   turbo run build --filter=@repo/web
 
-FROM node:24.22.1-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS runtime
+FROM node:26.12.1-alpine@sha256:40cd011b55415bc894e45b02fdd5a5dfde056921b7d23a64c74f80497af48797 AS runtime
 # The runtime needs only node: remove the bundled package managers (smaller image, and their own dependencies
 # carry CVEs that the application never uses).
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-* \
