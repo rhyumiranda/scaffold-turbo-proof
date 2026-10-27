@@ -1,0 +1,7 @@
+{
+  "container": {
+    "port": 4100,
+    "path": "/health/live",
+    "environment": ["DATABASE_URL", "AUTH_ISSUER", "AUTH_AUDIENCE", "AUTH_JWKS_URL"]
+  }
+}
