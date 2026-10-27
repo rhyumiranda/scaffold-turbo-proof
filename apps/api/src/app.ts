@@ -108,3 +108,6 @@ export function contract(app: Awaited<ReturnType<typeof createApp>>) {
   };
   return document;
 }
+
+// Acceptance defect: lint violation only.
+export const lintDefect: any = 1;
