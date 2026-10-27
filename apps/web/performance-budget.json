@@ -1,0 +1,5 @@
+{
+  "maxClientJavascriptGzipBytes": 400000,
+  "scope": "Sum of individually gzipped production .next/static/chunks/*.js files, recursively. Conservative whole-app asset guard, not per-route transfer or Core Web Vitals.",
+  "review": "Record measured routes, device/network assumptions, and reason in docs/decisions.md before changing this limit."
+}

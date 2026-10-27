@@ -1,0 +1,160 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "envMode": "strict",
+  "globalDependencies": [
+    "pnpm-workspace.yaml"
+  ],
+  "remoteCache": {
+    "signature": true
+  },
+  "boundaries": {
+    "tags": {
+      "app": {
+        "dependents": {
+          "deny": [
+            "app"
+          ]
+        }
+      }
+    }
+  },
+  "tasks": {
+    "build": {
+      "dependsOn": [
+        "^build",
+        "typecheck"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        "!.next/cache/**",
+        "!.next/dev/**"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "!**/*.md",
+        "!docs/**"
+      ]
+    },
+    "lint": {
+      "dependsOn": [
+        "^lint"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "!**/*.md",
+        "!docs/**"
+      ]
+    },
+    "typecheck": {
+      "dependsOn": [
+        "^typecheck"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "!**/*.md",
+        "!docs/**"
+      ]
+    },
+    "check:arch": {},
+    "check:docs": {},
+    "check:secrets": {},
+    "check:budget": {
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "test:unit": {
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "test:integration": {
+      "dependsOn": [
+        "build"
+      ],
+      "cache": false,
+      "passThroughEnv": [
+        "DATABASE_URL",
+        "NODE_ENV",
+        "AUTH_ISSUER",
+        "AUTH_AUDIENCE",
+        "AUTH_JWKS_URL",
+        "TEST_REDIS_URL",
+        "PG_BIN",
+        "TEST_API_URL",
+        "TEST_ALICE_TOKEN",
+        "TEST_BOB_TOKEN",
+        "WEB_TEST_URL",
+        "NEST_TEST_PROJECT",
+        "PLAYWRIGHT_BROWSERS_PATH"
+      ]
+    },
+    "test:runtime": {
+      "dependsOn": [
+        "build"
+      ],
+      "cache": false,
+      "passThroughEnv": [
+        "DATABASE_URL",
+        "NODE_ENV",
+        "AUTH_ISSUER",
+        "AUTH_AUDIENCE",
+        "AUTH_JWKS_URL",
+        "TEST_REDIS_URL",
+        "PG_BIN",
+        "TEST_API_URL",
+        "TEST_ALICE_TOKEN",
+        "TEST_BOB_TOKEN",
+        "WEB_TEST_URL",
+        "NEST_TEST_PROJECT",
+        "PLAYWRIGHT_BROWSERS_PATH"
+      ]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "interruptible": true
+    },
+    "contract:check": {
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "contract:compat": {},
+    "//#check:contract-sync": {
+      "cache": false
+    },
+    "test:e2e": {
+      "dependsOn": [
+        "build",
+        "@repo/web#build"
+      ],
+      "cache": false,
+      "passThroughEnv": [
+        "DATABASE_URL",
+        "NODE_ENV",
+        "AUTH_ISSUER",
+        "AUTH_AUDIENCE",
+        "AUTH_JWKS_URL",
+        "TEST_REDIS_URL",
+        "PG_BIN",
+        "TEST_API_URL",
+        "TEST_ALICE_TOKEN",
+        "TEST_BOB_TOKEN",
+        "WEB_TEST_URL",
+        "NEST_TEST_PROJECT",
+        "PLAYWRIGHT_BROWSERS_PATH"
+      ]
+    },
+    "migrate": {
+      "cache": false,
+      "passThroughEnv": [
+        "DATABASE_URL",
+        "NODE_ENV"
+      ]
+    },
+    "//#format:check": {},
+    "//#check:secrets:root": {}
+  }
+}

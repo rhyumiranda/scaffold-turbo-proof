@@ -1,0 +1,71 @@
+{
+  "name": "@repo/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.22.1 <25"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "start": "node dist/main.js",
+    "migrate": "node scripts/migrate.mjs",
+    "contract": "node scripts/export-contract.mjs",
+    "test": "pnpm test:unit && pnpm test:integration && pnpm test:runtime",
+    "check:arch": "node scripts/check-architecture.mjs",
+    "check:secrets": "secretlint '**/*'",
+    "check:docs": "node scripts/check-docs.mjs",
+    "contract:check": "node --test test/contracts.test.mjs",
+    "contract:compat": "node scripts/check-contract.mjs",
+    "test:unit": "node --test test/*.unit.test.mjs scripts/load.test.mjs",
+    "test:integration": "node --import ./test/test-database.mjs --test --test-concurrency=1 test/api.test.mjs test/migrations.test.mjs test/identity.test.mjs",
+    "test:profiles": "node --import ./test/test-database.mjs --test --test-concurrency=1 test/limiter.test.mjs test/limiter-http.test.mjs",
+    "test:recovery": "node scripts/recovery.mjs",
+    "test:telemetry": "node --import ./test/test-database.mjs --test test/telemetry.test.mjs",
+    "test:container": "node scripts/check-container.mjs",
+    "test:load": "node scripts/load.mjs",
+    "test:runtime": "node --import ./test/test-database.mjs --test --test-concurrency=1 test/runtime.test.mjs test/harness.test.mjs",
+    "dev": "node scripts/dev.mjs",
+    "test:e2e": "node --import ./test/test-database.mjs test/with-web.mjs ../web"
+  },
+  "dependencies": {
+    "@nestjs/common": "12.2.0",
+    "@nestjs/core": "12.2.0",
+    "@nestjs/platform-express": "12.2.0",
+    "@nestjs/swagger": "12.0.4",
+    "@nestjs/throttler": "6.7.1",
+    "@opentelemetry/api": "1.10.0",
+    "@opentelemetry/exporter-metrics-otlp-http": "0.300.0",
+    "@opentelemetry/exporter-trace-otlp-http": "0.300.0",
+    "@opentelemetry/sdk-metrics": "3.0.0",
+    "@opentelemetry/sdk-node": "0.300.0",
+    "@opentelemetry/sdk-trace": "3.0.0",
+    "@redis/client": "catalog:",
+    "class-transformer": "0.5.1",
+    "class-validator": "0.15.1",
+    "helmet": "8.3.0",
+    "jose": "catalog:",
+    "pg": "8.23.1",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2",
+    "express": "5.3.0"
+  },
+  "devDependencies": {
+    "@secretlint/secretlint-rule-preset-recommend": "catalog:",
+    "@types/express": "5.0.6",
+    "@types/node": "catalog:",
+    "@types/pg": "8.23.1",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "eslint": "catalog:",
+    "secretlint": "catalog:",
+    "typescript": "catalog:",
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*"
+  },
+  "files": [
+    "dist"
+  ]
+}
