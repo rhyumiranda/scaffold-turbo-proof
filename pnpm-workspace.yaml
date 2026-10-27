@@ -1,0 +1,32 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+sharedWorkspaceLockfile: true
+linkWorkspacePackages: false
+saveWorkspaceProtocol: rolling
+ignoreScripts: true
+engineStrict: true
+# Refuse packages published less than 24 hours ago (supply-chain policy). Explicit so every machine,
+# container and CI run enforces the same rule, even when the local store already holds the package.
+minimumReleaseAge: 1440
+strictPeerDependencies: true
+
+overrides:
+  multer: 2.5.0
+
+allowBuilds:
+  '@scarf/scarf': false
+  protobufjs: false
+
+# One version per shared dependency. The generator rewrites matching app dependencies to `catalog:`
+# and refuses a companion that pins a different version.
+catalog:
+  '@redis/client': 6.3.0
+  '@secretlint/secretlint-rule-preset-recommend': 13.1.0
+  '@types/node': 24.19.2
+  eslint: 10.13.0
+  jose: 6.2.13
+  secretlint: 13.1.0
+  typescript: 5.9.3
+  typescript-eslint: 8.72.0

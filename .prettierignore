@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.next/
+.turbo/
+coverage/
+test-results/
+playwright-report/
+.scaffold/
+pnpm-lock.yaml
+packages/api-client/src/api.d.ts
+*.json
+next-env.d.ts
+*.md
