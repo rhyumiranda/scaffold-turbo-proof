@@ -108,3 +108,6 @@ export function contract(app: Awaited<ReturnType<typeof createApp>>) {
   };
   return document;
 }
+
+// Acceptance defect: type error only.
+export const typeDefect: number = String(1);
