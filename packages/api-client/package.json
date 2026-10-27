@@ -1,0 +1,21 @@
+{
+  "name": "@repo/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "types": "./src/api.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/api.d.ts"
+    }
+  },
+  "scripts": {
+    "contract:generate": "openapi-typescript contract/openapi.json -o src/api.d.ts",
+    "contract:check": "node scripts/check-generated-contract.mjs",
+    "contract:compat": "node scripts/check-contract.mjs",
+    "test:unit": "node --test scripts/contract.test.mjs"
+  },
+  "devDependencies": {
+    "openapi-typescript": "7.13.0"
+  }
+}
