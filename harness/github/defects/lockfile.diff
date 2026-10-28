@@ -1,0 +1,14 @@
+diff --git a/apps/api/package.json b/apps/api/package.json
+index 2cbd73f..f84edaf 100644
+--- a/apps/api/package.json
++++ b/apps/api/package.json
+@@ -50,7 +50,8 @@
+     "pg": "8.23.1",
+     "reflect-metadata": "0.2.2",
+     "rxjs": "7.8.2",
+-    "express": "5.3.0"
++    "express": "5.3.0",
++    "is-number": "7.0.0"
+   },
+   "devDependencies": {
+     "@secretlint/secretlint-rule-preset-recommend": "catalog:",

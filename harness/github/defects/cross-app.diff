@@ -1,0 +1,8 @@
+diff --git a/apps/web/src/lib/cross-app.ts b/apps/web/src/lib/cross-app.ts
+new file mode 100644
+index 0000000..1773de8
+--- /dev/null
++++ b/apps/web/src/lib/cross-app.ts
+@@ -0,0 +1,2 @@
++// Acceptance defect (AC-84): web imports API source directly.
++export { CreateProject } from '../../../api/src/projects/dto';

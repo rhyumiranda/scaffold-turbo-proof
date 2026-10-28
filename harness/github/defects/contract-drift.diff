@@ -1,0 +1,10 @@
+diff --git a/apps/api/src/projects/dto.ts b/apps/api/src/projects/dto.ts
+index 1335b3e..96368db 100644
+--- a/apps/api/src/projects/dto.ts
++++ b/apps/api/src/projects/dto.ts
+@@ -45,4 +45,5 @@ export class ProjectResponse {
+   @ApiProperty() name!: string;
+   @ApiProperty({ type: 'integer', minimum: 1 }) version!: number;
+   @ApiProperty({ format: 'date-time' }) createdAt!: string;
++  @ApiProperty({ required: false }) description?: string;
+ }
