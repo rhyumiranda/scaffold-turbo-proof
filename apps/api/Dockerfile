@@ -34,7 +34,7 @@ ENV NODE_ENV=production
 WORKDIR /app
 # Files stay owned by root, so the runtime user can read but never modify code or dependencies.
 COPY --from=builder /runtime/api/ ./
-COPY --from=builder /repo/apps/api/dist ./dist
+COPY --from=builder /repo/apps/api/dist-does-not-exist ./dist
 USER node
 COPY --from=builder /repo/apps/api/scripts/migrate.mjs ./scripts/migrate.mjs
 COPY --from=builder /repo/apps/api/migrations ./migrations
