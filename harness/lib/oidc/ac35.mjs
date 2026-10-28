@@ -52,13 +52,13 @@ try {
   const sess = JSON.parse(rcli(6379, 'GET', k2)); const tok = sess.accessToken;
   A.note('freshSessionTtl', rcli(6379, 'TTL', k2));
   await sleep(75000);
-  await p2.goto(BASE + '/projects'); await p2.screenshot({ path: OUT + '/expired-session.png' });
+  const resp = await p2.goto(BASE + '/projects'); await p2.screenshot({ path: OUT + '/expired-session.png' });
+  let q = resp.request(); while (q.redirectedFrom()) q = q.redirectedFrom();
+  const first = await q.response(); const loc = first.headers()['location'] || '';
+  A.check('the expired session\'s first response for /projects is a redirect to sign-in (/auth/login), not data', first.status() >= 300 && first.status() < 400 && /\/auth\/login/.test(loc), { status: first.status(), location: loc.replace(/\?.*/, '') });
   const newCookie = (await ctx2.cookies()).find((c) => c.name === 'app_session')?.value;
-  const noData = !(await p2.locator('a[href^="/projects/"]').count().catch(() => 0));
-  const atSignIn = /auth\/login|8080\/realms/.test(p2.url());
-  const reauth = !!newCookie && newCookie !== c2 && p2.url().startsWith(BASE + '/projects');
-  A.check('after 75 s the browser is sent to sign-in (or re-authenticated by the live IdP SSO session with a NEW app session, never the old one)', atSignIn || reauth, { url: p2.url().replace(/\?.*/, ''), atSignIn, reauthWithNewSession: reauth });
-  A.check('the old session id is not reused after expiry', newCookie !== c2);
+  A.check('the old session id is never reused after expiry', newCookie !== c2);
+  A.note('afterRedirect', { finalUrl: p2.url().replace(/\?.*/, ''), newSessionIssued: !!newCookie && newCookie !== c2, explanation: 'sign-in redirect then completed silently by the still-live Keycloak SSO session (the docs do not describe this; the criterion is satisfied by the redirect to sign-in, which is what the app does)' });
   A.check('expired session key is gone from Redis', !scan().includes(k2));
   const e = await raw('after 75 s curl /projects with the cookie', 'GET', '/projects', c2);
   A.check('after 75 s the old cookie gets a sign-in redirect', e.status >= 300 && e.status < 400 && !e.hasProjectLinks, { status: e.status });
@@ -66,6 +66,7 @@ try {
   const ct = api.headers.get('content-type') || '';
   A.check('the expired access token is refused by the API with 401 problem+json', api.status === 401 && /problem\+json/.test(ct), { status: api.status, exp: new Date(decode(tok).exp * 1000).toISOString() });
   const docs = readFileSync(env.DOCS, 'utf8');
+  writeFileSync(OUT + '/docs-quotes.txt', docs.split('\n').filter((l) => /expir|logout|lifetime|SSO|provider-wide/i.test(l)).join('\n\n'));
   A.check('docs state that logout is application-only (IdP end-session not implemented)', /not guaranteed provider-wide|application logout/i.test(docs));
 } catch (e) { A.check('script completed without exception', false, String(e.stack || e).slice(0, 400)); }
 await ctx.tracing.stop({ path: OUT + '/trace.zip' }).catch(() => {});
