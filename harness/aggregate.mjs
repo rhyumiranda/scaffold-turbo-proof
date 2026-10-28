@@ -7,6 +7,24 @@ const results = existsSync(dir)
   ? readdirSync(dir).filter((f) => /^AC-\d+\.json$/.test(f)).map((f) => JSON.parse(readFileSync(join(dir, f), 'utf8')))
   : [];
 const byAc = new Map(results.map((r) => [r.ac, r]));
+// Criteria split across jobs: TARGET.json "parts" names the shards each needs (results/parts/<AC>-<shard>.json).
+// The criterion passes only when every named shard ran and passed; a missing shard is a FAIL.
+const target = JSON.parse(readFileSync(new URL('./TARGET.json', import.meta.url), 'utf8'));
+for (const [ac, shards] of Object.entries(target.parts ?? {})) {
+  const parts = shards.map((shard) => {
+    const file = join(dir, 'parts', `${ac}-${shard}.json`);
+    return existsSync(file) ? { shard, ...JSON.parse(readFileSync(file, 'utf8')) } : { shard, result: 'MISSING', reason: 'shard produced no result' };
+  });
+  const failed = parts.filter((part) => part.result !== 'PASS');
+  byAc.set(ac, {
+    ac,
+    result: failed.length ? 'FAIL' : 'PASS',
+    reason: parts.map((part) => `${part.shard}: ${part.result} (${part.reason})`).join('; '),
+    job: shards.join('+'),
+    commit: parts[0].commit ?? '',
+    skillTree: parts[0].skillTree ?? '',
+  });
+}
 const rows = [];
 for (let n = 1; n <= 107; n++) {
   const ac = `AC-${String(n).padStart(2, '0')}`;
