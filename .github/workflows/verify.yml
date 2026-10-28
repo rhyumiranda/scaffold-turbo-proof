@@ -1,0 +1,85 @@
+name: Verify workspace
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 3 * * 1'
+permissions:
+  contents: read
+# One run per branch or PR; a newer push to the same PR replaces the older run, pushes to main always finish.
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  verify:
+    name: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      redis:
+        image: redis:8.10.1@sha256:8a1efc5f479551822b47424ccae982026b633f28818eab0387348120a61e10e2
+        ports: ['6379:6379']
+      postgres:
+        image: postgres:15.15@sha256:98fe06b500b5eb29e45bf8c073eb0ca399790ce17b1d586448edc4203627d342
+        env:
+          POSTGRES_PASSWORD: local-test-only
+          POSTGRES_DB: reference_test
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      NODE_ENV: test
+      # secretlint-disable-next-line @secretlint/secretlint-rule-database-connection-string -- Disposable CI service only.
+      DATABASE_URL: postgresql://postgres:local-test-only@127.0.0.1:5432/reference_test
+      AUTH_ISSUER: https://identity.example.invalid/
+      AUTH_AUDIENCE: reference
+      AUTH_JWKS_URL: https://identity.example.invalid/jwks
+      TEST_REDIS_URL: redis://127.0.0.1:6379
+      API_BASE_URL: https://api.example.invalid
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.22.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 12.15.0
+          run_install: false
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check:workspace
+      - run: pnpm boundaries
+      - run: pnpm format:check
+      - run: pnpm check:secrets
+      - run: pnpm check:docs
+      - run: pnpm lint
+      - run: pnpm check:arch
+      - run: pnpm typecheck
+      - run: pnpm build
+      - run: pnpm test:unit
+      - run: pnpm contract:check
+      - name: Checked-in API schema matches a fresh export
+        run: pnpm --filter @repo/api contract && git diff --exit-code -- apps/api/openapi.json
+      - run: pnpm check:budget
+      # Web integration drives Chromium, so install it before the first browser suite.
+      - run: pnpm --filter @repo/web exec playwright install --with-deps chromium
+      - run: pnpm test:integration
+      - run: pnpm test:runtime
+      # Companion gates kept from scaffold-nest and scaffold-next. Each fails closed; none skips to green.
+      - run: pnpm --filter @repo/web test:identity
+      - run: pnpm --filter @repo/api test:profiles
+      - run: pnpm --filter @repo/api test:telemetry
+      - name: Disposable logical restore through migrations
+        run: PG_BIN="$(pg_config --bindir)" pnpm --filter @repo/api test:recovery
+      - run: pnpm --filter @repo/api test:container
+      - run: pnpm --filter @repo/web test:container
+      - name: SBOMs for both runtime images
+        run: pnpm run sbom
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sbom
+          path: sbom/
+          retention-days: 30
+      - run: pnpm test:e2e
+      - run: pnpm audit --audit-level=high
