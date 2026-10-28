@@ -70,4 +70,5 @@ scrub_secrets() {
     [ -n "$v" ] || continue
     grep -rIlF -- "$v" "$EV" "$RES" 2>/dev/null | while read -r f; do sed -i "s/$v/***SECRET***/g" "$f"; done
   done < "$WORK/.secrets"
+  return 0
 }

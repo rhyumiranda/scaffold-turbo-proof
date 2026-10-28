@@ -19,6 +19,7 @@ scrub_secrets() {
     [ -n "$v" ] || continue
     grep -rIlF -- "$v" "$EV" "$RES" 2>/dev/null | while read -r f; do sed -i "s/$v/***SECRET***/g" "$f"; done
   done < "$WORK/.secrets"
+  return 0
 }
 setup_quality() { # fail_all callback name
   ws_install || { "$1" "setup failed: pnpm install"; return 1; }
