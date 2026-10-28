@@ -23,7 +23,8 @@
     "quality2",
     "images",
     "ops",
-    "deferred"
+    "deferred",
+    "apisec7"
   ],
   "parts": {
     "AC-41": [
@@ -31,7 +32,8 @@
       "own",
       "diff",
       "fuzzA",
-      "fuzzB"
+      "fuzzB",
+      "n3"
     ]
   }
 }

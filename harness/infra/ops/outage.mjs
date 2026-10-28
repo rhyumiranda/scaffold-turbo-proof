@@ -23,14 +23,25 @@ async function waitFor(fn, pred, ms) { const s = Date.now(); let v; while (Date.
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ ignoreHTTPSErrors: true });
 const page = await ctx.newPage();
+// Chromium aborts navigations with ERR_NETWORK_CHANGED when Docker adds or removes a network interface on the runner.
+// Only that browser-side error restarts the whole sign-in (at most 3 retries, each recorded); any other error fails.
+const networkRetries = [];
 async function login(p) {
-  for (let a = 0; a < 4; a++) { try { await p.goto(BASE + '/projects'); break; } catch (e) { if (a === 3) throw e; await sleep(2000); } } await p.waitForSelector('#username', { timeout: 30000 });
-  await p.fill('#username', 'alice'); await p.fill('#password', process.env.KC_USER_PASSWORD);
-  await Promise.all([p.waitForURL(BASE + '/projects', { timeout: 30000 }), p.click('#kc-login')]);
+  for (let a = 0; ; a++) {
+    try {
+      await p.goto(BASE + '/projects'); await p.waitForSelector('#username', { timeout: 30000 });
+      await p.fill('#username', 'alice'); await p.fill('#password', process.env.KC_USER_PASSWORD);
+      await Promise.all([p.waitForURL(BASE + '/projects', { timeout: 30000 }), p.click('#kc-login')]);
+      return;
+    } catch (e) {
+      if (a === 3 || !/ERR_NETWORK_CHANGED/.test(String(e))) throw e;
+      networkRetries.push({ attempt: a + 1, at: new Date().toISOString() }); await sleep(2000);
+    }
+  }
 }
 const h1 = async (p) => (await p.locator('h1').first().textContent({ timeout: 5000 }).catch(() => null));
 const auth = (t) => ({ headers: { authorization: 'Bearer ' + t } });
-const result = { scenario: sc };
+const result = { scenario: sc, networkRetries };
 try {
   await login(page); note('logged in', page.url());
   const token = await mint();

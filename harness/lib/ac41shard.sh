@@ -1,6 +1,6 @@
 # AC-41 sharded corpus. ac41_shard NAME runs one shard of the full, fixed-seed corpus on its own runner and writes
 # results/parts/AC-41-NAME.json (it never writes results/AC-41.json; the aggregation step combines the parts).
-# Shards: core (core cases + ac41*/ac39/repros) | own (own attacks) | diff (n3, z5c, z5diff) | fuzzA (fuzz-z3 seeds 1-3) | fuzzB (fuzz-z3 seeds 4-5 + coordinator fuzz/sweep)
+# Shards: core (core cases + ac41*/ac39/repros) | own (own attacks) | n3 (n3 alone) | diff (z5c, z5diff) | fuzzA (fuzz-z3 seeds 1-3) | fuzzB (fuzz-z3 seeds 4-5 + coordinator fuzz/sweep)
 ac41_part() { # NAME RESULT REASON
   mkdir -p "$RES/parts"
   python3 - "$RES/parts/AC-41-$1.json" "$1" "$2" "$3" "$JOB" "${TARGET_SHA:-}" <<'PY'
@@ -27,7 +27,10 @@ ac41_shard() {
   mkdir -p "$WORK/pz/run"; export PZ="$WORK/pz"
   export OUT="$A41/replay"; mkdir -p "$OUT"
   export EV_ENV_NAMES="CLONE OUT PZ ALICE_PASSWORD ACME_CLI_SECRET PG_PASSWORD"
-  cd_run() { local l="$1" d="$2"; shift 2; ev_run AC-41 "replay-$l" "$d" -- timeout 1500 "$@"; local c=$?; echo "$l $c" >> "$A41/replay-exits.txt"
+  # Per-script limit: 25 minutes, except the n3 shard, whose 12,000 seeded mutations must run in order and include
+  # truncated bodies that wait for the server's own timeout (about 80 minutes in total).
+  local limit=1500; [ "$SH" = n3 ] && limit=6000
+  cd_run() { local l="$1" d="$2"; shift 2; ev_run AC-41 "replay-$l" "$d" -- timeout "$limit" "$@"; local c=$?; echo "$l $c" >> "$A41/replay-exits.txt"
     ac_check AC-41 "replay $l ran to completion (exit 0; 124 = timeout; see EXIT-POLICY.md, no script is excepted)" "$([ $c = 0 ] && echo 1 || echo 0)" "exit $c"; }
   if [ "$SH" = core ]; then
     run_phase AC-41 core -- env OUT="$A41" API=http://127.0.0.1:4103 WEB=http://localhost:3103 OPENAPI="$WS/apps/api/openapi.json" node "$N/ac41core.mjs"
@@ -49,8 +52,9 @@ ac41_shard() {
   own)
     for s in z5a z5b z5e z5f z5g z5d bom csrf-matcher hang-verify n1 n2; do cd_run "$s" "$R/own" node "$s.mjs"; done
     cd_run verify-patch "$R/own" env PORT=3103 node verify-patch.mjs ;;
+  n3)
+    cd_run n3 "$R/own" env SEED=5 N=12000 node n3.mjs ;;
   diff)
-    cd_run n3 "$R/own" env SEED=5 N=12000 node n3.mjs
     for sd in 21 22; do cd_run "z5c-$sd" "$R/own" node z5c.mjs 12000 $sd; done
     for sd in 11 12 13; do cd_run "z5diff-$sd" "$R/own" node z5diff.mjs 100000 $sd; done ;;
   fuzzA)
