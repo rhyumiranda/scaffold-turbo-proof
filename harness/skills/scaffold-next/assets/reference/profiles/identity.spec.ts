@@ -153,7 +153,7 @@ test('prefetches and client-router requests never start a sign-in or touch cooki
     const fetchMetadata = { 'sec-fetch-mode': 'cors', 'sec-fetch-dest': 'empty', 'sec-fetch-site': 'same-origin' };
     const variants: Record<string, string>[] = [
       { ...fetchMetadata, rsc: '1', 'next-router-prefetch': '1' },
-      { ...fetchMetadata, rsc: '1', 'next-router-state-tree': '%5B%22%22%5D' },
+      { ...fetchMetadata, rsc: '1' },
       { 'sec-purpose': 'prefetch', 'sec-fetch-mode': 'navigate', 'sec-fetch-dest': 'document' },
       fetchMetadata,
       { 'sec-fetch-mode': 'no-cors', 'sec-fetch-dest': 'image' },
