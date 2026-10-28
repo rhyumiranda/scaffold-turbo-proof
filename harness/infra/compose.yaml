@@ -1,0 +1,29 @@
+# Test-only services. Postgres keeps data in memory and skips durability work (never use these settings in production).
+name: acc
+services:
+  postgres:
+    image: postgres:15.15
+    command: ["postgres", "-c", "fsync=off", "-c", "synchronous_commit=off", "-c", "full_page_writes=off", "-c", "max_connections=200"]
+    environment: { POSTGRES_PASSWORD: "${PG_PASSWORD}", POSTGRES_DB: acme_test }
+    tmpfs: ["/var/lib/postgresql/data"]
+    ports: ["127.0.0.1:5432:5432"]
+    healthcheck: { test: ["CMD", "pg_isready", "-U", "postgres"], interval: 1s, retries: 60 }
+  redis:
+    image: redis:8.2.2
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports: ["127.0.0.1:6379:6379"]
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 1s, retries: 60 }
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4
+    command: ["start-dev", "--import-realm", "--http-port", "8080", "--health-enabled=true"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: "${KC_ADMIN_PASSWORD}"
+      KC_USER_PASSWORD: "${KC_USER_PASSWORD}"
+      KC_ACME_WEB_SECRET: "${KC_ACME_WEB_SECRET}"
+      KC_ACME_CLI_SECRET: "${KC_ACME_CLI_SECRET}"
+      KC_ACME_NOAUD_SECRET: "${KC_ACME_NOAUD_SECRET}"
+      KC_OTHER_CLI_SECRET: "${KC_OTHER_CLI_SECRET}"
+    ports: ["127.0.0.1:8080:8080", "127.0.0.1:9000:9000"]
+    volumes: ["./realm:/opt/keycloak/data/import:ro"]
+    healthcheck: { test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q UP <&3"], interval: 2s, retries: 90 }

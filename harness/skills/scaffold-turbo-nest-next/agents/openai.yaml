@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nest + Next Turborepo Scaffold"
+  short_description: "Production Nest and Next Turborepo foundation"
+  default_prompt: "Use $scaffold-turbo-nest-next to generate and verify a new NestJS and Next.js Turborepo workspace."

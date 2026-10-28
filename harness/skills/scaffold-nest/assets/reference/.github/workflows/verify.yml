@@ -1,0 +1,58 @@
+name: Verify API
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '17 3 * * 1'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      redis:
+        image: redis:8.10.1
+        ports: ['6379:6379']
+      postgres:
+        image: postgres:15.15
+        env:
+          POSTGRES_PASSWORD: local-test-only
+          POSTGRES_DB: reference_test
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      NODE_ENV: test
+      # secretlint-disable-next-line @secretlint/secretlint-rule-database-connection-string -- Disposable service password declared above, no hosted database.
+      DATABASE_URL: postgresql://postgres:local-test-only@127.0.0.1:5432/reference_test
+      AUTH_ISSUER: https://identity.example.invalid/
+      AUTH_AUDIENCE: reference
+      AUTH_JWKS_URL: https://identity.example.invalid/jwks
+      TEST_REDIS_URL: redis://127.0.0.1:6379
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.22.1
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run check:secrets
+      - run: npm run check:docs
+      - run: npm run lint
+      - run: npm run check:arch
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm test
+      - run: npm run test:profiles
+      - run: npm run test:telemetry
+      - run: npm run test:container
+      - name: Disposable logical restore through migrations
+        run: PG_BIN="$(pg_config --bindir)" npm run test:recovery
+      - run: npm run contract
+      - run: git diff --exit-code -- openapi.json
+      - run: npm run contract:check
+      - run: npm run contract:compat
+      - run: npm audit --audit-level=high

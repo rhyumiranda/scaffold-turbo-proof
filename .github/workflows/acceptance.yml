@@ -1,0 +1,78 @@
+name: Acceptance
+on:
+  push:
+    branches: [acceptance-harness, 'harness-dev/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: acceptance-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      sha: ${{ steps.t.outputs.sha }}
+      tree: ${{ steps.t.outputs.tree }}
+      jobs: ${{ steps.t.outputs.jobs }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - id: t
+        run: |
+          echo "sha=$(jq -r .commit harness/TARGET.json)" >> "$GITHUB_OUTPUT"
+          echo "tree=$(jq -r .skillTree harness/TARGET.json)" >> "$GITHUB_OUTPUT"
+          jobs="$(jq -c .jobs harness/TARGET.json)"
+          # A harness-dev/<a>+<b> branch runs only the named job groups while they are being developed.
+          case "$GITHUB_REF_NAME" in harness-dev/*) jobs="$(jq -cn --arg g "${GITHUB_REF_NAME#harness-dev/}" '$g | split("+")')";; esac
+          echo "jobs=$jobs" >> "$GITHUB_OUTPUT"
+  run:
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        job: ${{ fromJSON(needs.plan.outputs.jobs) }}
+    env:
+      JOB: ${{ matrix.job }}
+      TARGET_SHA: ${{ needs.plan.outputs.sha }}
+      TARGET_TREE: ${{ needs.plan.outputs.tree }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { path: h, persist-credentials: false }
+      # The generated repository: a fresh HTTPS clone of the recorded commit on main.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { ref: '${{ needs.plan.outputs.sha }}', path: 'acc run/ws', persist-credentials: false, fetch-depth: 0 }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: 24.22.1 }
+      - run: corepack enable pnpm && corepack prepare pnpm@12.15.0 --activate
+        env: { COREPACK_ENABLE_DOWNLOAD_PROMPT: '0' }
+      - name: Run ${{ matrix.job }}
+        run: bash h/harness/jobs/${{ matrix.job }}.sh
+      - if: always()
+        name: Stop services
+        run: docker compose -f h/harness/infra/compose.yaml down -v --remove-orphans || true
+      - if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: evidence-${{ matrix.job }}
+          path: |
+            acc run/evidence
+            acc run/results
+          if-no-files-found: error
+          retention-days: 30
+  aggregate:
+    needs: [plan, run]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with: { path: all, pattern: evidence-*, merge-multiple: true }
+      - run: node harness/aggregate.mjs all >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with: { name: acceptance-all, path: all, retention-days: 30 }

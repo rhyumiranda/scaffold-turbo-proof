@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.next/
+coverage/
+test-results/
+playwright-report/
+.scaffold/
+package-lock.json
+openapi.json
+contract/
+contracts/
+src/generated/
+*.md
+*.json

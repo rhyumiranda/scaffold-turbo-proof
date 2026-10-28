@@ -1,0 +1,44 @@
+{
+  "realm": "other",
+  "enabled": true,
+  "sslRequired": "none",
+  "clients": [
+    {
+      "clientId": "other-cli",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "${KC_OTHER_CLI_SECRET}",
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false,
+      "protocolMappers": [
+        {
+          "name": "api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "acme-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "mallory",
+      "enabled": true,
+      "email": "mallory@acme.test",
+      "emailVerified": true,
+      "firstName": "Mallory",
+      "lastName": "Test",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KC_USER_PASSWORD}",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

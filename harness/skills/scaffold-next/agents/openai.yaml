@@ -1,0 +1,4 @@
+interface:
+  display_name: "Next.js Production Scaffold"
+  short_description: "Scaffold and verify a four-layer Next.js frontend"
+  default_prompt: "Use $scaffold-next to scaffold and verify an API-backed Next.js frontend for my project."

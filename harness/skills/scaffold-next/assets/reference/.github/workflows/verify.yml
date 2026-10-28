@@ -1,0 +1,61 @@
+name: Verify frontend
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 3 * * 1'
+permissions:
+  contents: read
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      redis:
+        image: redis:8.10.1
+        ports: ['6379:6379']
+    env:
+      TEST_REDIS_URL: redis://127.0.0.1:6379
+      API_BASE_URL: https://api.example.invalid
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.22.1
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run check:secrets
+      - run: npm run contract:check
+      - run: npm run contract:compat
+      - run: npm run lint
+      - run: npm run test:unit
+      - run: npm run test:identity
+      - run: npm run check:docs
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm run check:budget
+      - run: npm run test:runtime
+      - run: npm run test:container
+      - run: npm audit --audit-level=high
+  real-integration:
+    # Always runs. Missing isolated API bootstrap fails clearly; it never skips to green.
+    needs: static
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.22.1
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Run isolated real API journey
+        run: npm run test:integration

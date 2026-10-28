@@ -1,0 +1,52 @@
+{
+  "name": "@repo/workspace-reference",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@12.15.0",
+  "engines": {
+    "node": ">=24.22.1 <25",
+    "pnpm": "12.15.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "check:arch": "turbo run check:arch",
+    "check:docs": "turbo run check:docs",
+    "check:secrets": "turbo run check:secrets check:secrets:root --continue",
+    "check:budget": "turbo run check:budget",
+    "check:workspace": "node scripts/check-workspace.mjs",
+    "test:unit": "turbo run test:unit",
+    "test:integration": "turbo run test:integration",
+    "test:runtime": "turbo run test:runtime",
+    "test:e2e": "turbo run test:e2e",
+    "contract:generate": "turbo run build --filter=@repo/api && pnpm --filter @repo/api contract && node scripts/sync-contract.mjs && pnpm --filter @repo/api-client contract:generate",
+    "contract:check": "turbo run contract:check contract:compat check:contract-sync",
+    "migrate": "turbo run migrate",
+    "boundaries": "turbo boundaries",
+    "check:contract-sync": "node scripts/check-contract-sync.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check:secrets:root": "secretlint \"**/*\"",
+    "sbom": "node scripts/sbom.mjs"
+  },
+  "devDependencies": {
+    "turbo": "2.11.10",
+    "prettier": "3.9.10",
+    "secretlint": "catalog:",
+    "@secretlint/secretlint-rule-preset-recommend": "catalog:"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.15.0",
+      "onFail": "error"
+    },
+    "runtime": {
+      "name": "node",
+      "version": ">=24.22.1 <25",
+      "onFail": "error"
+    }
+  }
+}

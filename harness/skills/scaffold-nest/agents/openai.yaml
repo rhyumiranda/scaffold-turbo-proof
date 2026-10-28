@@ -1,0 +1,4 @@
+interface:
+  display_name: "NestJS Production Scaffold"
+  short_description: "Scaffold and verify a NestJS API, phase by phase"
+  default_prompt: "Use $scaffold-nest to scaffold and verify a NestJS API for my project."
