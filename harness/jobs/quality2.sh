@@ -38,6 +38,9 @@ for n in 0 1 2 3 4 5 6 7 8 9 10; do
   fi
   res="$(run_suites "$n" | tail -1)"
   caught_by[$n]="$res"
+  # Proof file: the diff that changed behaviour plus the failing assertion lines (or NOT CAUGHT).
+  { echo "== sabotage $n: caught by $res"; echo "== diff"; cat "$EV/AC-74/s$n.diff" 2>/dev/null; echo "== failing assertions"
+    if [ "$res" = none ]; then echo "NOT CAUGHT: every suite stayed green"; else cat "$EV/AC-74/s$n-first-failures.txt" 2>/dev/null; fi; } > "$EV/AC-74/s$n-proof.txt"
   echo "sabotage $n caught by: $res" | tee -a "$EV/AC-74/summary.txt"
   git -C "$WS" switch -q --detach "$TARGET_SHA" && [ "$(git -C "$WS" rev-parse HEAD)" = "$TARGET_SHA" ] || { ok=0; why="$why could not return to target after s$n;"; break; }
   git -C "$WS" branch -q -D "sabotage/AC-74-$n"

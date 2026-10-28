@@ -12,8 +12,8 @@ elif n == 3:
     edit('apps/api/src/app.ts', 'forbidNonWhitelisted: true,', 'forbidNonWhitelisted: false,')
 elif n == 4:
     edit('apps/api/src/platform/auth.ts', "        audience: this.config.audience,\n", "")
-elif n == 5:  # readiness never fails
-    edit('apps/api/src/platform/health.ts', "    } catch {\n      throw new ServiceUnavailableException();\n    }", "    } catch (error) {\n      if (error instanceof ServiceUnavailableException) throw error;\n      return { status: 'ready' };\n    }")
+elif n == 5:  # readiness is unconditional (references kept so build and lint stay clean)
+    edit('apps/api/src/platform/health.ts', "    try {\n      await Promise.all([this.db.query('SELECT 1'), this.limiter.ready()]);\n      return { status: 'ready' };\n    } catch {\n      throw new ServiceUnavailableException();\n    }", "    const keep = [this.db, this.limiter, ServiceUnavailableException];\n    if (keep.length === 0) throw new ServiceUnavailableException();\n    await Promise.resolve();\n    return { status: 'ready' };")
 elif n == 6:  # drop server-only and import the server module from a client component
     edit('apps/web/src/features/projects/services/projects.server.ts', "import 'server-only';\n", "")
     edit('apps/web/src/features/projects/components/project-form.tsx', "import type { Project } from '../services/types';", "import type { Project } from '../services/types';\nimport { listProjects } from '../services/projects.server';")
