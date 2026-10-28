@@ -75,7 +75,7 @@ ac54() {
   local ac=AC-54 f="$EV/AC-54" ok=1 why=""
   mkdir -p "$f"
   grep -n -i 'healthz\|smoke' "$WS/docs/operations.md" > "$f/docs-excerpt.txt"
-  grep -q 'GET `/healthz`' "$f/docs-excerpt.txt" || { ok=0; why="$why /healthz is not documented;"; }
+  grep -q 'GET /healthz' "$f/docs-excerpt.txt" || { ok=0; why="$why /healthz is not documented;"; }
   local smoke; smoke="$(grep -E '^API=http://127.0.0.1:4100 WEB=http://127.0.0.1:3000 sh -c ' "$WS/docs/operations.md" | head -1)"
   [ -n "$smoke" ] || { ok=0; why="$why documented smoke command not found;"; }
   echo "$smoke" > "$f/smoke-command.txt"
