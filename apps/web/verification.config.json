@@ -1,0 +1,7 @@
+{
+  "container": {
+    "port": 3000,
+    "path": "/projects",
+    "environment": ["API_BASE_URL", "AUTH_TRANSACTION_SECRET"]
+  }
+}

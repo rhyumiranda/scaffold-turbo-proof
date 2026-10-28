@@ -1,0 +1,16 @@
+node_modules/
+.turbo/
+dist/
+apps/api/src/generated/
+.next/
+coverage/
+playwright-report/
+test-results/
+identity-test-results/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+.DS_Store
+out/
+sbom/

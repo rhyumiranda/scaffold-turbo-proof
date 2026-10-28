@@ -1,0 +1,17 @@
+// Shared base of the multi-file schema: the generator and the datasource only, never models.
+// Each API module owns one folder beside this file (prisma/schema/<module>/) with its own models.
+// See docs/architecture.md, "Adding a module's data".
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // No FOREIGN KEY constraints anywhere: relations inside a module are enforced by Prisma Client,
+  // and modules reference each other only by plain ID columns. check:arch fails a migration with a foreign key.
+  relationMode = "prisma"
+}

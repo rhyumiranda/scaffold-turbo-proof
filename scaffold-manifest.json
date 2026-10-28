@@ -1,0 +1,939 @@
+{
+  "schemaVersion": 1,
+  "skill": "scaffold-turbo-nest-next",
+  "referenceVersion": "1.4.0",
+  "status": "generated",
+  "runtime": "24.22.1",
+  "packageManager": "pnpm@12.15.0",
+  "turbo": "2.11.10",
+  "generatedAt": "2026-10-28T17:51:05.469Z",
+  "generatorCommand": [
+    "node",
+    "/Users/rhyu/.codex/skills/scaffold-turbo-nest-next/scripts/scaffold.mjs",
+    "--destination",
+    "/private/tmp/claude-501/-Users-rhyu-Library-Application-Support-Claude-scratch-workspaces-479423b4-ece5-4170-b249-5c6cce84e534-975920c5-931e-4b5f-9788-95de44f466bb-scratch-2026-10-27-f10010/0f662a67-5278-442a-a967-7511bdecd3fe/scratchpad/acc run/gen-prisma-final/acme-app",
+    "--name",
+    "acme-app",
+    "--nest-skill",
+    "/Users/rhyu/.codex/skills/scaffold-nest",
+    "--next-skill",
+    "/Users/rhyu/.codex/skills/scaffold-next",
+    "--intake",
+    "/private/tmp/claude-501/-Users-rhyu-Library-Application-Support-Claude-scratch-workspaces-479423b4-ece5-4170-b249-5c6cce84e534-975920c5-931e-4b5f-9788-95de44f466bb-scratch-2026-10-27-f10010/0f662a67-5278-442a-a967-7511bdecd3fe/scratchpad/acc run/gen-h1/intake.json"
+  ],
+  "companions": {
+    "nest": {
+      "skill": "scaffold-nest",
+      "referenceVersion": "1.4.0",
+      "sourceChecksums": {
+        ".dockerignore": "d144106c9d47507fe6b78b1eed90771ded159ecd3281fedcb6f848c84accd3a7",
+        ".env.example": "6e9dfff0c09dbeeb1e6141ca021f53c6cce057804bf2c120faa253e809a49dfb",
+        ".github/dependabot.yml": "0ed12bd8346474327e37a82b88266d19973817104c90fb2ef56241db622a4b62",
+        ".github/workflows/verify.yml": "eca0d3bd791a314e3b0673ce88d015d9fdbe7c0ebc4121a9578467c7100e0ebe",
+        ".gitignore": "b3462a092103f0c78a3090537ad695d71e483b459cd5e4a6450aacb15f4de96a",
+        ".gitleaks.toml": "a6bba2b8c51c8d8ab0f27cfbfdd21343b12a8eb9aaf3149eee3face62d4deff4",
+        ".npmrc": "33452a1dec6251147fd8c556a0c5d426b7af2e837fc12ca4e102bf1dd6e6262f",
+        ".nvmrc": "d9f318747a126ce2247661af67852b185def7789492eabfad7bba322be087c33",
+        ".prettierignore": "b39294a87c048ad2cbd21c474b2958c6a502c12feb27f8d91230485770ea450b",
+        ".prettierrc.json": "05ff822ce3e9ec1aa69775f1fd901d3fa8a44b0ab22f54d8dcc6a01e1f0c1c6f",
+        ".secretlintignore": "ba9c3c69a303a25a596684b7926d8ff50970b4e09383bba8019096e488273448",
+        ".secretlintrc.json": "f6bed829baad11367c8271e3565752382254f532224cfc5af28025b6d7ee4090",
+        "AGENTS.md": "8725b33e4ff1347f5f0091bbeb59bb2741f2d1cf74ebc0de0196ef1a44fe8506",
+        "Dockerfile": "0a89aba6daba2c1a3bd9560b507c2b395ed95b6a6e5605404c62a610a169c708",
+        "contracts/accepted.openapi.json": "57172e5fbb3664b8fc0d97d539886c851db353404d4c3ce94a8fe7b88ec8c937",
+        "docs/architecture.md": "8def8d6ebdea29ba865f2d94ce9379dc4940be920132d5c3e2e07bc79517aa80",
+        "docs/decisions.md": "8539fd7783d2921a495612a59b9f2673274d8c37f6aa95219146d4bb4f64d816",
+        "docs/environment.md": "83e515174b83f5dad2fa4cf4bb5c5e997711f292cc4646ed0699e66ec2f1fa4f",
+        "docs/features/projects.md": "221a27b74688cf5e50ac491a9a659ab41bfa672e4bafd012a91c69fec09a688a",
+        "docs/operations.md": "347fb5be1f3f011c301b8e16e22719d217bde2db0dfda7e4d942c8b28a4239fc",
+        "docs/production-profiles.md": "0c3ea1753d5e465b56194ddf9bc722f7eb31ad93505157df9bec24c8316253e1",
+        "docs/security-verification.md": "31d49b36e675c9dbc8f91805fbaa6ba6522e2e9f8d2a1caed2b0aaa4e45c06ce",
+        "eslint.config.mjs": "23c62f16b94cbe9ddf952494a225d472260939ef2ced6cc92800d768d7e14321",
+        "openapi.json": "ed5d02dce368de555f31b875d00821a98ef1778e8e6163fe7c29bef52772d8b1",
+        "package-lock.json": "9577d80b78257ae80f2ba22a455d652f217ad7b4a1f4e7a61a54451e1b713ef5",
+        "package.json": "b4b8cefe04e1c10014cfb29f9b85761a0c78afbc92f082c80ad4fee190208d87",
+        "prisma.config.ts": "e1c3b52f9a9fa0196dcc0323b38457abf3260618b4491157e23cb046c8cc23db",
+        "prisma/migrations/0001_projects/migration.sql": "322bca838b3a1354fab8a541cbb3b733bc7453d3cd98515372880e4c411352fe",
+        "prisma/migrations/migration_lock.toml": "99836963713b4f5b269ad49af0ed3d7b0b2e336115c2f92dc9ac683d139d0900",
+        "prisma/schema/base.prisma": "b7be9881bc079533a0ee076532c6e12a3bad052a824c97607a83aa6b6fba6002",
+        "prisma/schema/projects/projects.prisma": "f81bc907ba1dff42f7cfb8524dbad414c4141f6b6ded223050c3dd0ba6515d0e",
+        "scripts/check-architecture.mjs": "0c8b11171aa5796bee33609126cd0063d9ccb4ad1425daa2892eee95be669525",
+        "scripts/check-container.mjs": "9480a7cd380a84637de2b13ca30e38c17b3b1476c433c69b6219c4b664ced7c0",
+        "scripts/check-contract.mjs": "645fccd55070ba3ff3c680da07ac084912f3b11ca303c712fb18489889ab5852",
+        "scripts/check-docs.mjs": "ddcab2ddda800f1545eeaedb5bef28c8e75ab6a64e648af9e963d5abbb979bfc",
+        "scripts/collector.mjs": "1d2e8153dd6ae2802750f647f70b107ca77e2a4206f2efc4e453373c9ef86706",
+        "scripts/export-contract.mjs": "a3adc11f06802f40f6b08970bbb7f7d54fd5d72a647921ead8889d8866a66ab2",
+        "scripts/load.mjs": "f0c111c44a95ce4909cbe071626481159a8573aa3a025163dbbe28c05a4e672f",
+        "scripts/load.test.mjs": "f6e3c304d7f6280a0ec7e0a1ba63f33064ccf7996c50053165c953c07f4c5ebd",
+        "scripts/migrate.mjs": "f7b9d907173cdf38ec6c106eb3acc9e86fed3dfe8a2512348701ec84fbd14774",
+        "scripts/recovery.mjs": "e4be05533540ae6a60f52c67d162407dbdac60843b7f80ca07ac9c04acc99093",
+        "src/app.ts": "1d10994eae00bab38018ccc18cb8861f5effc576f470fb1e73c8c59ab82f3527",
+        "src/main.ts": "3e236dca81984a82b6a3d3b8ebc6fce473afbc7ce6894731d5398a6da470a108",
+        "src/platform/auth.ts": "a273ed001eefbf01a24ba920dd43ec8a0a4d96c6f56901d7c8fc61dc4c482cb4",
+        "src/platform/capacity.ts": "28f1e7f57cf4064ebf83749b2ccb8564208f29a7c105f13cf4ff79c1cc7761ff",
+        "src/platform/config.ts": "4a9578ef4162bb945880aac8650e18bb05e25b209f5ad450c5dd8533b4d77ea2",
+        "src/platform/configuration-error.ts": "14981d55818f06bacb75edc10627e651687373a833bbd0d04af4b338b7e6fabb",
+        "src/platform/database.ts": "133ea9ceb4e46cccd8c1dae739afd1f81abc06ea359c9508b6ab70815a10dec1",
+        "src/platform/deadline.ts": "1a7641846b0f5626395286a2723532325bdd8b28f80785e9d4691655d81f7862",
+        "src/platform/errors.ts": "01bd56059de20cc90bc233d612603738019be9bfc91c0e5bd81aa5c31b2586b9",
+        "src/platform/health.ts": "ea8300e6b77d5fa1c26ca777341d59c36fe30dc721a7bec0509872fe777b650b",
+        "src/platform/index.ts": "b0d07dbbe38a68ff20094a50c83728a452ff3ca75a350be2ea32b86bce5fe31a",
+        "src/platform/limiter.ts": "64de4695ba9a56b7c01096b974ee0502194fe92d12c49dce3d2b1c5231e2a218",
+        "src/platform/logging.ts": "4084574cbdd63503611b0e1d47b2ddc86c8f09df5fb61a5c8e5f93ef80dba679",
+        "src/platform/module.ts": "4320eb1a6f4a38de492a0a34c85d48fb25f86b03a7b17e9bfef5ea14765a7500",
+        "src/platform/problem.ts": "bce5753ad973c653cb3edd95733c779dce416e22d7633fb30a743c712f6af963",
+        "src/platform/shutdown.ts": "ecf49bf49fd5254812c5b639f9813589e182ecdbcef6b92a8d8324a60d75c0ab",
+        "src/platform/telemetry.ts": "d323837b98abe3dbf2e0d9fc277d9d745d213d8664f3a420f42f7b580b5ab8b8",
+        "src/platform/throttle.ts": "333638418f3d1fe278f88cc8d8971310e0157112b656fccedc38a73da3dd3a25",
+        "src/projects/controller.ts": "c5bedefd07702145d098e42f65a69b2fb55e5cd5dd4c3951168cd1e1210236df",
+        "src/projects/dto.ts": "a11b9f5c2c4ff6e27bf3cb1c5eb24ea22440087d7445f2848654df789487c523",
+        "src/projects/index.ts": "ea4be596d7bba3fd3174290a55ec73d16d020adc57616eb2e228328b172c6cbc",
+        "src/projects/module.ts": "47fde9bd941e12f74d9cbbf13e025820be04a2ae8f7a63bde169e44f793791c2",
+        "src/projects/repository.ts": "043bef000c11f530a54f031d6db950472c18e85327264bb0268e7ec03dbf2e5e",
+        "src/projects/service.ts": "1616f410e84e441a6b0b14b52707154fe870cadc5bf094450453af511f04f2ec",
+        "test/api.test.mjs": "5042fdf71c8ca5b832f325d6ebe3bb04057ca967e26971e1a7eb9fb20557a6ac",
+        "test/architecture.unit.test.mjs": "f9178c05c055b083491b800a30320f8619c495bcec218ffa1344672dacb60212",
+        "test/body-depth.unit.test.mjs": "aafe2e8547336c1c0415a9f942f81ba970b1557ab41c82a7559d915f161ef8cd",
+        "test/capacity.unit.test.mjs": "c22a9ebe8b9524bc45e48253875a8fa4fa85a1918a52b2cfeb82d92515dd80e8",
+        "test/contracts.test.mjs": "2fcd52188aa06b40c441bf22b76d5366d31b1e858c3b5fc7c89a33690e69ac93",
+        "test/database.unit.test.mjs": "85409b6f8e9c52ab2c50a57c0096149dcb1fd0c0ae4abd4779ffc950d88a1eec",
+        "test/errors.unit.test.mjs": "2de25a9006d735819f121f543c92f7d8464113bc1dd08dc9b3bff298a297b54a",
+        "test/fixtures/drain-server.mjs": "764371d4397fe3aff383ba344a7dfe32d4cd4fc872ebf0e83598fd31edab49b9",
+        "test/harness.test.mjs": "db5c406a7b7d0c70d5bef5e1e3dd00c56141e256ea79a335111aa055026d407a",
+        "test/identity.test.mjs": "70f69c5aedf170fb37bbcc22adc9bfbfad45d6141b8138f2ae6619b98dc03e6c",
+        "test/install-policy.unit.test.mjs": "fbf44a0ac129530924c1fd0e4b5990015702ca0585ba9f1b40ade133271ad66e",
+        "test/limiter-http.test.mjs": "d471c7ef33a383971f5ca643a19fcb2d5e48c2e8f1715dcbc18038f2f731cdcb",
+        "test/limiter.test.mjs": "244df17a48e68b0c4f2baf9cb9baee8ba0783fbd92f4043caa49a5e2c5b17666",
+        "test/logging.unit.test.mjs": "0cddaccbf9200c8019ac3f1e06995413d9ea11406d06aaf4055bf0cf2bde0ef6",
+        "test/migrations.test.mjs": "6ffb2b97f8fa2a6850f5da329caac32589677954cffc45368aa5ecf17535c1e0",
+        "test/projects-dto.unit.test.mjs": "490bd51a41db5cbb174739b41d72c33c2e5997ae247b28cfc6d5dd78d6bee353",
+        "test/projects-service.unit.test.mjs": "ec154eefd95ddb70fbeca271fc760cc082cc2550c4e0a65dfa2426d17681670b",
+        "test/runtime.test.mjs": "21036d7d82de2dce21bcaa4a2e1ca66e80e9a30bd222ea16623a4fae4d690c34",
+        "test/schema.mjs": "d4efb06156862a4a51a3f847cd327a41ac5bb5ce27201a03507fac3e2632715d",
+        "test/security.unit.test.mjs": "58780c1c813830a74dada26e10a78ad323f0e21dc7866510b51c9f420699a3ef",
+        "test/telemetry.test.mjs": "e5515c91ec4b1363e883c1b0cb0c5c589b89bc4853aa6fae0dbb66dcbee448b5",
+        "test/test-database.mjs": "476b3ef82f3d3352ee411ddb67af269221450d878c51d7aad1776a2b9a1ca73c",
+        "test/test-database.unit.test.mjs": "c547000ce9eea7efc9a607a4adf4c3a298e0dd84fbec02b5b48cff2548ae8a3b",
+        "test/throttle.unit.test.mjs": "8782b4616017f57282ca463d7ab76a412ba2bd12d8bba0997c627cc67bbdf565",
+        "test/with-web.mjs": "4918c2760dc058b596ad91b8f52688b005b27b045d1db78c902672ef035622e3",
+        "tsconfig.json": "3cffadaa5f5d62cb17a9695c56113ed60e8dfde0a6b32087d28c07ac26b97c93",
+        "verification.config.json": "16441755b0900aadf0a6ff2a44d573cd0e71e91845a499f75a0e94ca949f4f89"
+      }
+    },
+    "next": {
+      "skill": "scaffold-next",
+      "referenceVersion": "1.4.0",
+      "sourceChecksums": {
+        ".dockerignore": "cb5168fc8308b3fea75125611f0828b3a2c37d3e94675af437c557daae1c3d95",
+        ".env.example": "df74b4978332be9df5563c22e77c66bdae7370365de460c51bfc15dd6ca5324f",
+        ".github/dependabot.yml": "0ed12bd8346474327e37a82b88266d19973817104c90fb2ef56241db622a4b62",
+        ".github/workflows/verify.yml": "8524aedbb9c868465fa64dbe91efe501c0b6a0d39011f89131832606c8ceb03d",
+        ".gitignore": "d5d347d08de54a0de3bd9a9d3e72348d515ad7fe18eb7bc995b4ca3ab61486e1",
+        ".gitleaks.toml": "a6bba2b8c51c8d8ab0f27cfbfdd21343b12a8eb9aaf3149eee3face62d4deff4",
+        ".npmrc": "33452a1dec6251147fd8c556a0c5d426b7af2e837fc12ca4e102bf1dd6e6262f",
+        ".nvmrc": "d9f318747a126ce2247661af67852b185def7789492eabfad7bba322be087c33",
+        ".prettierignore": "75dc6aa03cf759b9e9ea82e207cdb372548389f48abc91788eb5a780ac3836fe",
+        ".prettierrc.json": "05ff822ce3e9ec1aa69775f1fd901d3fa8a44b0ab22f54d8dcc6a01e1f0c1c6f",
+        ".secretlintignore": "02c0738e897450f3396fd087a5631aa2f13b95572dd162e31b5864335a693f7e",
+        ".secretlintrc.json": "f6bed829baad11367c8271e3565752382254f532224cfc5af28025b6d7ee4090",
+        "AGENTS.md": "475a74d0b29b25965fc31628a4f4cbd7bcd142359e869ae2d0ff736f34380a86",
+        "Dockerfile": "c5e09e4af69cc16a7e401abc7acc86a0a3c054b695af3a4cba0c7203754975ca",
+        "contract/accepted.openapi.json": "57172e5fbb3664b8fc0d97d539886c851db353404d4c3ce94a8fe7b88ec8c937",
+        "contract/openapi.json": "ed5d02dce368de555f31b875d00821a98ef1778e8e6163fe7c29bef52772d8b1",
+        "docs/architecture.md": "d7285a2b6e6464186e9e8737c084665529a83ca6cdff4366efeef945fb4bbc72",
+        "docs/decisions.md": "9b72f999514782bfb907f29cd9c7302a8ce034635dcdfd1273b2bd85b94b9029",
+        "docs/environment.md": "6e702cd18773827bd9f9705a1f882c639b31a3f36b3d4057b05282bd37e9b8bc",
+        "docs/features/projects.md": "ddf82c609bbebd53f9c65af162d06ba1dd949b9c63845c8e9dbcf13888e99c66",
+        "docs/operations.md": "9b1e2f7ae20ddea921c7edc70c395138360a52f8bfae9304aff2515a0d26ab41",
+        "docs/production-profiles.md": "4800d1e6f1fe022c2cc7e72f5a4dc9d84d4c6c2b4f426fe199ca7f9626ea5bf9",
+        "docs/security-verification.md": "67431ec71c2a6c491c773d1ec59f1586e55b2f2a56fd26d2c03acde5b6959dbf",
+        "docs/testing.md": "08deaed47af30b326c9f580750e09ec23dda6a023a6bf3bc2a44669a3942e30c",
+        "eslint.config.mjs": "e388ecb0a69c301ff8eae0bae22bdd5c1116b5df4708efa4f04c7e52ec1464bc",
+        "next-env.d.ts": "1862ac4bbbc5192d4bf562161df66ea547ed3e67173100656ab606ae9797db2b",
+        "next.config.ts": "6b8e93a2ed10846440e5e3827407e7827f6295af2afba9c7771c4b0ba3a8b99f",
+        "package-lock.json": "e1cd4c1558cb51bdc2966d255786b745d0e9f77ace03086e44c3efe3a597e733",
+        "package.json": "43be5585bbc7a2cc0b0b7e7189af292c4873b15aba1181d8f0664c1e9d9d323e",
+        "performance-budget.json": "9394e157b2c49332c577879654198a509223bbd15f08cc5e66a8c96a1d69de76",
+        "playwright.config.ts": "a47bb179c77d6c655f8cea805dd9102bfd3b02d3e1a1e0dc9589bcb17ca1cd47",
+        "playwright.identity.config.ts": "21c8e6f7d8b4ea91b4a0d30e6cdff5819d2151ca9c520f4223909df9268f0281",
+        "profiles/identity.spec.ts": "a88c57afc7cc0064dd4d09b84b8278de1dce5aef4f52f800f1f09d7eb6148b79",
+        "public-env.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "scripts/architecture.test.mjs": "512e5e08a4c77fb358cc59230550100b0d68909d96f274805d3398ee3fadaeaf",
+        "scripts/budget.test.mjs": "f958c9f8e081ebf51e2f613ee96bcc5dfae92af4254f17a73b19723dabf55f99",
+        "scripts/check-architecture.mjs": "b98db74385b512b2c9b8fda6ccaf15aab89540761dacb8c17185e00dcd8a7895",
+        "scripts/check-budget.mjs": "b699e12e3c5db0cf7c3dc44d50151634f75c30aa7389e39c6d68cbe4c69811fe",
+        "scripts/check-container.mjs": "c992401a0d4c4ddfda4ec35edcb27b5067df143c2eb457c8ad961f1be53aadd6",
+        "scripts/check-contract.mjs": "15474a5cf783e6512442883df285d6945ec3f6327f2e9257358d3b319381ae5a",
+        "scripts/check-docs.mjs": "ddcab2ddda800f1545eeaedb5bef28c8e75ab6a64e648af9e963d5abbb979bfc",
+        "scripts/check-generated-contract.mjs": "a9fc7ae63c0898303863085894ca2b97e20ff08d83b129625649d2da4789c2f9",
+        "scripts/collector.mjs": "644f01600f7639993a6dcfd1018029aee2162b18ca7712d464f364575f07bc9a",
+        "scripts/container-start.mjs": "becbf156883857d75b51047c05d0e0c2c20fc1ee6540576bf24ba76b28893227",
+        "scripts/contract.test.mjs": "7854442477ab4c97073f4ef623b99ddabc5a25b292d055b3dde2604530174d53",
+        "scripts/deployment.test.mjs": "32ec787bd8f17b37d866f4307281e92be6331bc72dda6120b464ee01bd329981",
+        "scripts/identity.test.mjs": "89d8bf314032954203325061384eb7c8bf1ac6f6507976d1f5456975981b3ca5",
+        "scripts/install-policy.test.mjs": "fbf44a0ac129530924c1fd0e4b5990015702ca0585ba9f1b40ade133271ad66e",
+        "scripts/integration.test.mjs": "10cdd2dac650dc158866019d95c243ba59bdd1d0f1e328ab85944a828ba1f495",
+        "scripts/load.mjs": "f0c111c44a95ce4909cbe071626481159a8573aa3a025163dbbe28c05a4e672f",
+        "scripts/load.test.mjs": "f6e3c304d7f6280a0ec7e0a1ba63f33064ccf7996c50053165c953c07f4c5ebd",
+        "scripts/package.mjs": "40a45fe06b64ab4f291b089ab8cff9c6f8ed4f65a16753aae357c2c26c3c3eb7",
+        "scripts/return-to.test.mjs": "3186b5f0b27f70ed5e540681b7ea81ada383d5d5da0dabc3f548a7b22a6a19a5",
+        "scripts/run-integration.mjs": "699f3eaa7ad3437b5d15ef5ee339a06dfccaa6100a83698aa9b71c2b890e4086",
+        "scripts/runtime-config.d.mts": "4b8e0ae15c7a0d4942df0a4b0e6f6aa44f79fe128ae9ee151d9a4a6c33e29fbf",
+        "scripts/runtime-config.mjs": "93f8c43dab1adef243333d1db60c8fd2b1cb9839adae30e4b91bfeb5d5411ec2",
+        "scripts/runtime-config.test.mjs": "0be5412760c01e0030df52bf646624ffe3d1eb1558378b021f2f0662131d23a9",
+        "scripts/runtime.test.mjs": "b1b430c054a235cde84673d908e8a381dda8088802684fe470069c92f117c624",
+        "scripts/security.test.mjs": "58780c1c813830a74dada26e10a78ad323f0e21dc7866510b51c9f420699a3ef",
+        "scripts/start.mjs": "dd1de155f59ecc955b8baad4495856c87be677e5cb5a47f1b0076cc8c6ac38bd",
+        "scripts/telemetry.test.mjs": "a9e5eabb571dd959e9e4d90d242b0ec6d6d5d212abd35b0839b56fb98f93925b",
+        "scripts/trace-export.test.mjs": "2ff694cb0ef7f4953a6f78ed30a169ffb87a0ab6bada9fa41e0af9a00e135b75",
+        "scripts/transaction-cookie.test.mjs": "03d6142e9e81ac9d3ef479c17c5b21db90737e6158c0b4c6d90e83d8a73cb320",
+        "scripts/typegen.mjs": "7d2a5a3e13a7302c37a3e676a3abe8f1d05c5d36bea9ecb0ff117e86af72bdd6",
+        "src/app/auth/[operation]/route.ts": "0dbd176ea1846b292b31b3d97ab5544c6104ccf6f1ec43edb8c6fc22da828c6e",
+        "src/app/globals.css": "6d171f89b112d3a59404be6be94484fde57d82282b2d2c853ad0d4e305d0a2bc",
+        "src/app/healthz/route.ts": "523eceafb5df82c8acca82e5065e86e0250738b2c5e687aaef5c247d0cd21322",
+        "src/app/layout.tsx": "bf2f069fb454ac18fe666bf8b816ff228a3f7a5d674c9a445e7a894be34af482",
+        "src/app/not-found.tsx": "707183e495f31055e4f6fc7ed3787581900518cccfa41ce74f90cd88e8ef9fc2",
+        "src/app/page.tsx": "ef848322b4170eb0baecffa6344d717c08305a3d2a2e614e7be31fd4ab423504",
+        "src/app/projects/[id]/not-found.tsx": "6d7b30d79fc66cb5244788d0f2809d76795ed954ce4c27f2de570599e9f6e567",
+        "src/app/projects/[id]/page.tsx": "e93359dadb07c0cba7e2655555ce3061bfc4d54f64f046210f5e35fe755c41c9",
+        "src/app/projects/error.tsx": "747e0744d1815d1ef3d576437f050ac7e4b7e58e8a5ac7041c712294b25d8dc2",
+        "src/app/projects/loading.tsx": "7f9b8f485983c55afa62f4f7c31fc556025da41eb8c962cd62a0db9a8c6bf2b4",
+        "src/app/projects/not-found.tsx": "fb7d2072029a2fe34a9901477234d034a084985e0390b5ae99cf2dd0529a195a",
+        "src/app/projects/page.tsx": "05b2a992d15cc9a533a04f853e515e7f7dbd913fd3d5797ad1babe00ba4b0e10",
+        "src/app/sign-in-problem/page.tsx": "c3706955147cef1f01d1c8742117a61582832d4229a0de19b32a5f75a415da34",
+        "src/app/signed-out/page.tsx": "385f8950914ea8a6186b3def4aa05cc396312ed88116b44bf12833df185446a8",
+        "src/features/projects/actions/projects.ts": "0f89822cb0e522e81235167100b18dad76d1defafeccfad6dd6f9e176607d33e",
+        "src/features/projects/components/project-form.tsx": "4bfe463b7bfc839548f7afa81bc2f7e6c1961da96e533de457752803843dce25",
+        "src/features/projects/components/project-link.tsx": "e84e634b28c4adb2d55048a7c5f67c10d707db2b4419298708e7b228bb86cdd9",
+        "src/features/projects/hooks/use-project-form.ts": "ea41d42797b8b5d44e14d96c63244118ced5aac7e0e0d3de66b3139966aaed2c",
+        "src/features/projects/index.ts": "a7a0595a2a000137ee304fe62e0554ac7e1698ebdbeb6a721e81ce2062370d60",
+        "src/features/projects/services/projects.server.ts": "a2f3e1cfc372bbc603114682cd818456be674b51c5fb3b0a6e0d003bbab366f3",
+        "src/features/projects/services/types.ts": "ad3eab86002e784c88c38b5db09043bbb876efdbf72127dffa36f246d1fcea45",
+        "src/generated/api.d.ts": "2b33d45bb50af58a114822d7a7baaabdc9f73b3c30a78da0a8b9fe1a9f8b7266",
+        "src/instrumentation.ts": "3f54ae198342f9e47205cacae0e76c13919a0e8f4b2efdb00093df0f93a697b6",
+        "src/lib/deployment.ts": "ac2eb4827ac5138ab77063ef613b6698c96087614a1133a11496e68ee3736a03",
+        "src/lib/feature-routes.d.mts": "a26338c8cb33d6bf71b7bdd31c74a8830cd355d2ddae16bd56be5071af9e9a90",
+        "src/lib/feature-routes.mjs": "983c7365adf00a454a3272408d9be9e690d8cf003ed6eed72c0f9db92af5283a",
+        "src/lib/identity.ts": "924630843cbcdfe2052f54cba4a4c1e7e1bda11f70156c9ae943b2a051df5ef6",
+        "src/lib/session.server.ts": "9ffd824aaf782925a64d1f266e7969f457d089e9aed9d978842d19e114d40bb4",
+        "src/lib/telemetry.ts": "9f8a9a99fcea27ad9cc8eb7c082e607fa8fc808e20ae63c8448bd038774cbdc6",
+        "src/lib/trace-export.ts": "f4a9a0a5f112330168220416dcf7486c9295cb0987f13fcf04f59b3a157f2ea0",
+        "src/lib/transaction-cookie.d.mts": "385f529706cc38627487cde1ee5c35650384c509e22c95b499e38b0137becb47",
+        "src/lib/transaction-cookie.mjs": "b2fbf9f06f099a01369dab145b4b07f2847ea4edc600ae1ce88db74e00889617",
+        "src/proxy.ts": "0a54aa21de5cb91bb4e2003e68bdfbe4558d86bfad386461cede70317c3bb806",
+        "tests/accessibility.spec.ts": "b85c2dcccb9a6db951af58b8b34f7218af20224912209de16a05f004a26bb460",
+        "tests/action-input.spec.ts": "0dc7d1fcc519402bdf50e557c1177b9b8fb6fcbb0f5149175481731df3d0cd5d",
+        "tests/adapters/nest.mjs": "a99a8ebdf6460c868dd0b44dc3c0a885fca4226ca1fe63903e213923919ee379",
+        "tests/form-regressions.spec.ts": "cb3921ca265de9d5a3239c1a1b14dbc4c3184762f46faa5edadea6b302a99591",
+        "tests/integration-bootstrap.mjs": "e48e682a6e88caac036fbc79590d57dc4f6a7b7a1833032df531d284460c65d3",
+        "tests/oidc-provider.mjs": "58ad0137163c742f77a56d0f850b19d425f275befd1c5840be3d96fa7caef31d",
+        "tests/projects.spec.ts": "842f50b15bf22b81c81576dce5c0924a04d8b6891790470e2d5059e111cc9928",
+        "tsconfig.json": "0b16ff18791fe4ed783ed727613b0a1ebf626f6948ed6d17ca63729bb2478c82",
+        "verification.config.json": "0b2e9348d90f417332008b8d464f192b36e87c736f1732c1a51ed660bcb1570c"
+      }
+    }
+  },
+  "transformations": [
+    "standalone-to-workspace",
+    "npm-to-pnpm",
+    "shared-tooling-config",
+    "generated-api-client-package",
+    "workspace-container-context"
+  ],
+  "checksums": {
+    ".dockerignore": "e38e17caa5b28dfdd96279f8a7e921a867a4c9da3a332def3d6dcc73e30c1fde",
+    ".github/dependabot.yml": "f46fdbbdc0dd5a951ce0524039e6b9e54244dcf592ae2b5a82638701fb8ed22d",
+    ".github/workflows/verify.yml": "90295ca485576de8d1f16b83407fa591d74de0bfb80ed0f8cb7e4781abba32e5",
+    ".gitignore": "1e86a657f71dab81524892a0e5c22bce854a78b5b4b895f44659c7155f89f1bd",
+    ".gitleaks.toml": "a6bba2b8c51c8d8ab0f27cfbfdd21343b12a8eb9aaf3149eee3face62d4deff4",
+    ".nvmrc": "d9f318747a126ce2247661af67852b185def7789492eabfad7bba322be087c33",
+    ".prettierignore": "d9d200468e53a8ed81f5c8d51341beb4a48e4781b593a2cc9eec1d21093660cb",
+    ".prettierrc.json": "05ff822ce3e9ec1aa69775f1fd901d3fa8a44b0ab22f54d8dcc6a01e1f0c1c6f",
+    ".secretlintignore": "7d213d2ac2c3b38b55b34b1df7c2ee752c7919987f7ea2dd74170fb49f373a89",
+    ".secretlintrc.json": "f6bed829baad11367c8271e3565752382254f532224cfc5af28025b6d7ee4090",
+    "AGENTS.md": "93768b74e32810f4f006553eac140481028f88571ba22d81f357801c5edd9919",
+    "apps/api/.env.example": "6e9dfff0c09dbeeb1e6141ca021f53c6cce057804bf2c120faa253e809a49dfb",
+    "apps/api/.gitleaks.toml": "a6bba2b8c51c8d8ab0f27cfbfdd21343b12a8eb9aaf3149eee3face62d4deff4",
+    "apps/api/.secretlintignore": "ba9c3c69a303a25a596684b7926d8ff50970b4e09383bba8019096e488273448",
+    "apps/api/.secretlintrc.json": "f6bed829baad11367c8271e3565752382254f532224cfc5af28025b6d7ee4090",
+    "apps/api/AGENTS.md": "469c46897010135dd064a937f5409b103f5469439faa4d346eb773689e45b943",
+    "apps/api/Dockerfile": "f87ccb784c4793b2916c391fd6b681e9e8f736d15c432fc4c053219ba30970ec",
+    "apps/api/contracts/accepted.openapi.json": "57172e5fbb3664b8fc0d97d539886c851db353404d4c3ce94a8fe7b88ec8c937",
+    "apps/api/docs/architecture.md": "0d507eb4c30df52572ea929f54853bddd1f66680d4a2ccfe6fbcf4237dfc0e74",
+    "apps/api/docs/decisions.md": "8539fd7783d2921a495612a59b9f2673274d8c37f6aa95219146d4bb4f64d816",
+    "apps/api/docs/environment.md": "83e515174b83f5dad2fa4cf4bb5c5e997711f292cc4646ed0699e66ec2f1fa4f",
+    "apps/api/docs/features/projects.md": "221a27b74688cf5e50ac491a9a659ab41bfa672e4bafd012a91c69fec09a688a",
+    "apps/api/docs/operations.md": "3b39e1e036024b9ac4a0e67698bd15cc20376623da0f7ccb124a597c4adf6d50",
+    "apps/api/docs/production-profiles.md": "b036a126dbe3efc34a15b4d361fb922831b36d641186611076edc1a6e98a6047",
+    "apps/api/docs/security-verification.md": "5b7c0a4ef300812d1db74c08aaf16b07ed666af363b9c4fdae0ff9ad8a8e1c0c",
+    "apps/api/eslint.config.mjs": "336cd156a2f53a9703a4132fda1fec18b494a725e3fd7b934db3ecfad5264e1e",
+    "apps/api/openapi.json": "ed5d02dce368de555f31b875d00821a98ef1778e8e6163fe7c29bef52772d8b1",
+    "apps/api/package.json": "305711a6fe8d930dfb3d64d456ee8239dafb13c3da5986520ffb9e1b30fc53d3",
+    "apps/api/prisma.config.ts": "e1c3b52f9a9fa0196dcc0323b38457abf3260618b4491157e23cb046c8cc23db",
+    "apps/api/prisma/migrations/0001_projects/migration.sql": "322bca838b3a1354fab8a541cbb3b733bc7453d3cd98515372880e4c411352fe",
+    "apps/api/prisma/migrations/migration_lock.toml": "99836963713b4f5b269ad49af0ed3d7b0b2e336115c2f92dc9ac683d139d0900",
+    "apps/api/prisma/schema/base.prisma": "b7be9881bc079533a0ee076532c6e12a3bad052a824c97607a83aa6b6fba6002",
+    "apps/api/prisma/schema/projects/projects.prisma": "f81bc907ba1dff42f7cfb8524dbad414c4141f6b6ded223050c3dd0ba6515d0e",
+    "apps/api/scripts/check-architecture.mjs": "0c8b11171aa5796bee33609126cd0063d9ccb4ad1425daa2892eee95be669525",
+    "apps/api/scripts/check-container.mjs": "6ee857960f4b6333cd92df73821cb96de3b046b0b0218939bf21afa831e9f348",
+    "apps/api/scripts/check-contract.mjs": "645fccd55070ba3ff3c680da07ac084912f3b11ca303c712fb18489889ab5852",
+    "apps/api/scripts/check-docs.mjs": "ddcab2ddda800f1545eeaedb5bef28c8e75ab6a64e648af9e963d5abbb979bfc",
+    "apps/api/scripts/collector.mjs": "1d2e8153dd6ae2802750f647f70b107ca77e2a4206f2efc4e453373c9ef86706",
+    "apps/api/scripts/dev.mjs": "af0b9cbdfbb6341c648ec88dfb306749559f84fb9fc688ea2018b4ecf1b2f9f1",
+    "apps/api/scripts/export-contract.mjs": "a3adc11f06802f40f6b08970bbb7f7d54fd5d72a647921ead8889d8866a66ab2",
+    "apps/api/scripts/load.mjs": "f0c111c44a95ce4909cbe071626481159a8573aa3a025163dbbe28c05a4e672f",
+    "apps/api/scripts/load.test.mjs": "f6e3c304d7f6280a0ec7e0a1ba63f33064ccf7996c50053165c953c07f4c5ebd",
+    "apps/api/scripts/migrate-bundle.mjs": "c0dcff63a03bd0d0915c46996cd398d9be8556ea997ac515fcda594dea432e7e",
+    "apps/api/scripts/migrate.mjs": "f7b9d907173cdf38ec6c106eb3acc9e86fed3dfe8a2512348701ec84fbd14774",
+    "apps/api/scripts/recovery.mjs": "e4be05533540ae6a60f52c67d162407dbdac60843b7f80ca07ac9c04acc99093",
+    "apps/api/src/app.ts": "1d10994eae00bab38018ccc18cb8861f5effc576f470fb1e73c8c59ab82f3527",
+    "apps/api/src/main.ts": "3e236dca81984a82b6a3d3b8ebc6fce473afbc7ce6894731d5398a6da470a108",
+    "apps/api/src/platform/auth.ts": "a273ed001eefbf01a24ba920dd43ec8a0a4d96c6f56901d7c8fc61dc4c482cb4",
+    "apps/api/src/platform/capacity.ts": "28f1e7f57cf4064ebf83749b2ccb8564208f29a7c105f13cf4ff79c1cc7761ff",
+    "apps/api/src/platform/config.ts": "4a9578ef4162bb945880aac8650e18bb05e25b209f5ad450c5dd8533b4d77ea2",
+    "apps/api/src/platform/configuration-error.ts": "14981d55818f06bacb75edc10627e651687373a833bbd0d04af4b338b7e6fabb",
+    "apps/api/src/platform/database.ts": "133ea9ceb4e46cccd8c1dae739afd1f81abc06ea359c9508b6ab70815a10dec1",
+    "apps/api/src/platform/deadline.ts": "1a7641846b0f5626395286a2723532325bdd8b28f80785e9d4691655d81f7862",
+    "apps/api/src/platform/errors.ts": "01bd56059de20cc90bc233d612603738019be9bfc91c0e5bd81aa5c31b2586b9",
+    "apps/api/src/platform/health.ts": "ea8300e6b77d5fa1c26ca777341d59c36fe30dc721a7bec0509872fe777b650b",
+    "apps/api/src/platform/index.ts": "b0d07dbbe38a68ff20094a50c83728a452ff3ca75a350be2ea32b86bce5fe31a",
+    "apps/api/src/platform/limiter.ts": "64de4695ba9a56b7c01096b974ee0502194fe92d12c49dce3d2b1c5231e2a218",
+    "apps/api/src/platform/logging.ts": "4084574cbdd63503611b0e1d47b2ddc86c8f09df5fb61a5c8e5f93ef80dba679",
+    "apps/api/src/platform/module.ts": "4320eb1a6f4a38de492a0a34c85d48fb25f86b03a7b17e9bfef5ea14765a7500",
+    "apps/api/src/platform/problem.ts": "bce5753ad973c653cb3edd95733c779dce416e22d7633fb30a743c712f6af963",
+    "apps/api/src/platform/shutdown.ts": "ecf49bf49fd5254812c5b639f9813589e182ecdbcef6b92a8d8324a60d75c0ab",
+    "apps/api/src/platform/telemetry.ts": "d323837b98abe3dbf2e0d9fc277d9d745d213d8664f3a420f42f7b580b5ab8b8",
+    "apps/api/src/platform/throttle.ts": "333638418f3d1fe278f88cc8d8971310e0157112b656fccedc38a73da3dd3a25",
+    "apps/api/src/projects/controller.ts": "c5bedefd07702145d098e42f65a69b2fb55e5cd5dd4c3951168cd1e1210236df",
+    "apps/api/src/projects/dto.ts": "a11b9f5c2c4ff6e27bf3cb1c5eb24ea22440087d7445f2848654df789487c523",
+    "apps/api/src/projects/index.ts": "ea4be596d7bba3fd3174290a55ec73d16d020adc57616eb2e228328b172c6cbc",
+    "apps/api/src/projects/module.ts": "47fde9bd941e12f74d9cbbf13e025820be04a2ae8f7a63bde169e44f793791c2",
+    "apps/api/src/projects/repository.ts": "043bef000c11f530a54f031d6db950472c18e85327264bb0268e7ec03dbf2e5e",
+    "apps/api/src/projects/service.ts": "1616f410e84e441a6b0b14b52707154fe870cadc5bf094450453af511f04f2ec",
+    "apps/api/test/api.test.mjs": "5042fdf71c8ca5b832f325d6ebe3bb04057ca967e26971e1a7eb9fb20557a6ac",
+    "apps/api/test/architecture.unit.test.mjs": "f9178c05c055b083491b800a30320f8619c495bcec218ffa1344672dacb60212",
+    "apps/api/test/body-depth.unit.test.mjs": "aafe2e8547336c1c0415a9f942f81ba970b1557ab41c82a7559d915f161ef8cd",
+    "apps/api/test/capacity.unit.test.mjs": "c22a9ebe8b9524bc45e48253875a8fa4fa85a1918a52b2cfeb82d92515dd80e8",
+    "apps/api/test/contracts.test.mjs": "59de7f3a066400e7c380400844c8cb2c52db414c3d235092f29e25f0d79d47f2",
+    "apps/api/test/database.unit.test.mjs": "85409b6f8e9c52ab2c50a57c0096149dcb1fd0c0ae4abd4779ffc950d88a1eec",
+    "apps/api/test/errors.unit.test.mjs": "2de25a9006d735819f121f543c92f7d8464113bc1dd08dc9b3bff298a297b54a",
+    "apps/api/test/fixtures/drain-server.mjs": "764371d4397fe3aff383ba344a7dfe32d4cd4fc872ebf0e83598fd31edab49b9",
+    "apps/api/test/harness.test.mjs": "db5c406a7b7d0c70d5bef5e1e3dd00c56141e256ea79a335111aa055026d407a",
+    "apps/api/test/identity.test.mjs": "70f69c5aedf170fb37bbcc22adc9bfbfad45d6141b8138f2ae6619b98dc03e6c",
+    "apps/api/test/install-policy.unit.test.mjs": "5e40a458368e5873941d3d7559af55bfc7542742c376dbc600217c2a5a402d0c",
+    "apps/api/test/limiter-http.test.mjs": "d471c7ef33a383971f5ca643a19fcb2d5e48c2e8f1715dcbc18038f2f731cdcb",
+    "apps/api/test/limiter.test.mjs": "244df17a48e68b0c4f2baf9cb9baee8ba0783fbd92f4043caa49a5e2c5b17666",
+    "apps/api/test/logging.unit.test.mjs": "0cddaccbf9200c8019ac3f1e06995413d9ea11406d06aaf4055bf0cf2bde0ef6",
+    "apps/api/test/migrations.test.mjs": "6ffb2b97f8fa2a6850f5da329caac32589677954cffc45368aa5ecf17535c1e0",
+    "apps/api/test/projects-dto.unit.test.mjs": "490bd51a41db5cbb174739b41d72c33c2e5997ae247b28cfc6d5dd78d6bee353",
+    "apps/api/test/projects-service.unit.test.mjs": "ec154eefd95ddb70fbeca271fc760cc082cc2550c4e0a65dfa2426d17681670b",
+    "apps/api/test/runtime.test.mjs": "21036d7d82de2dce21bcaa4a2e1ca66e80e9a30bd222ea16623a4fae4d690c34",
+    "apps/api/test/schema.mjs": "d4efb06156862a4a51a3f847cd327a41ac5bb5ce27201a03507fac3e2632715d",
+    "apps/api/test/security.unit.test.mjs": "58780c1c813830a74dada26e10a78ad323f0e21dc7866510b51c9f420699a3ef",
+    "apps/api/test/telemetry.test.mjs": "e5515c91ec4b1363e883c1b0cb0c5c589b89bc4853aa6fae0dbb66dcbee448b5",
+    "apps/api/test/test-database.mjs": "476b3ef82f3d3352ee411ddb67af269221450d878c51d7aad1776a2b9a1ca73c",
+    "apps/api/test/test-database.unit.test.mjs": "c547000ce9eea7efc9a607a4adf4c3a298e0dd84fbec02b5b48cff2548ae8a3b",
+    "apps/api/test/throttle.unit.test.mjs": "8782b4616017f57282ca463d7ab76a412ba2bd12d8bba0997c627cc67bbdf565",
+    "apps/api/test/with-web.mjs": "4918c2760dc058b596ad91b8f52688b005b27b045d1db78c902672ef035622e3",
+    "apps/api/tsconfig.json": "bcec182ae65ab57bd8675ed6c0ea75c4441b52def354ab43c4ee452c94b7473b",
+    "apps/api/turbo.json": "2e5dcaa0892044fcae0d3dde573ff6f3ecca13f529160b4511b4a73b5fe321e5",
+    "apps/api/verification.config.json": "16441755b0900aadf0a6ff2a44d573cd0e71e91845a499f75a0e94ca949f4f89",
+    "apps/web/.env.example": "df74b4978332be9df5563c22e77c66bdae7370365de460c51bfc15dd6ca5324f",
+    "apps/web/.gitleaks.toml": "a6bba2b8c51c8d8ab0f27cfbfdd21343b12a8eb9aaf3149eee3face62d4deff4",
+    "apps/web/.secretlintignore": "02c0738e897450f3396fd087a5631aa2f13b95572dd162e31b5864335a693f7e",
+    "apps/web/.secretlintrc.json": "f6bed829baad11367c8271e3565752382254f532224cfc5af28025b6d7ee4090",
+    "apps/web/AGENTS.md": "12d4925bac1b6f81cab3180abaf1dd62a96ce6fc189b50858d63ad23e01356c2",
+    "apps/web/Dockerfile": "d064d0ecb0ac187c7adc0e0845a76c6c0e0415caea453b33c99a891e018b1adf",
+    "apps/web/docs/architecture.md": "c2ecb55e817571b0465ebd5a272ed288a0da60a6dcff79007c184dda5fc6d94a",
+    "apps/web/docs/decisions.md": "9b72f999514782bfb907f29cd9c7302a8ce034635dcdfd1273b2bd85b94b9029",
+    "apps/web/docs/environment.md": "a390455c6d91a91584be4f3b70acf5a324a4d93dd1d4c81bbdf5730ad87054cc",
+    "apps/web/docs/features/projects.md": "ddf82c609bbebd53f9c65af162d06ba1dd949b9c63845c8e9dbcf13888e99c66",
+    "apps/web/docs/operations.md": "e46c1bc272b34e8f771a76f9cc07504a2d6b99456fb9be56a76952a31140c88c",
+    "apps/web/docs/production-profiles.md": "0e7d2cb5a98266e9a1c541011116398b6a0c16f87858a971a187735505e5df91",
+    "apps/web/docs/security-verification.md": "80b90da0567c6ba6c2501c514767f32e776fc48f85f29cf52651d4cbf3d6bed7",
+    "apps/web/docs/testing.md": "484561610286719b53cbdbbcd42d39975d18049f810ddb9d85214003510e45e4",
+    "apps/web/eslint.config.mjs": "942b4a836146bff96f04013bec82ba89a9f3f607f9606844d8a695ee4cd6f1ae",
+    "apps/web/next-env.d.ts": "1862ac4bbbc5192d4bf562161df66ea547ed3e67173100656ab606ae9797db2b",
+    "apps/web/next.config.ts": "63f7e223b01231c2a265b8fa960255335726bd6a1bf9aab929cb91e6760a321a",
+    "apps/web/package.json": "fc1dda46d9def8791ea8e69e6faf2248d7402920c91f260e5015b2b7dce2ea56",
+    "apps/web/performance-budget.json": "9394e157b2c49332c577879654198a509223bbd15f08cc5e66a8c96a1d69de76",
+    "apps/web/playwright.config.ts": "a47bb179c77d6c655f8cea805dd9102bfd3b02d3e1a1e0dc9589bcb17ca1cd47",
+    "apps/web/playwright.identity.config.ts": "21c8e6f7d8b4ea91b4a0d30e6cdff5819d2151ca9c520f4223909df9268f0281",
+    "apps/web/profiles/identity.spec.ts": "a88c57afc7cc0064dd4d09b84b8278de1dce5aef4f52f800f1f09d7eb6148b79",
+    "apps/web/public-env.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "apps/web/scripts/architecture.test.mjs": "512e5e08a4c77fb358cc59230550100b0d68909d96f274805d3398ee3fadaeaf",
+    "apps/web/scripts/budget.test.mjs": "f958c9f8e081ebf51e2f613ee96bcc5dfae92af4254f17a73b19723dabf55f99",
+    "apps/web/scripts/check-architecture.mjs": "b98db74385b512b2c9b8fda6ccaf15aab89540761dacb8c17185e00dcd8a7895",
+    "apps/web/scripts/check-budget.mjs": "b699e12e3c5db0cf7c3dc44d50151634f75c30aa7389e39c6d68cbe4c69811fe",
+    "apps/web/scripts/check-container.mjs": "4cdb06b36b73be49ca2bc14ef2b4e26777b15677a92057f9b6d810fcd016c213",
+    "apps/web/scripts/check-docs.mjs": "ddcab2ddda800f1545eeaedb5bef28c8e75ab6a64e648af9e963d5abbb979bfc",
+    "apps/web/scripts/collector.mjs": "644f01600f7639993a6dcfd1018029aee2162b18ca7712d464f364575f07bc9a",
+    "apps/web/scripts/container-start.mjs": "becbf156883857d75b51047c05d0e0c2c20fc1ee6540576bf24ba76b28893227",
+    "apps/web/scripts/deployment.test.mjs": "32ec787bd8f17b37d866f4307281e92be6331bc72dda6120b464ee01bd329981",
+    "apps/web/scripts/identity.test.mjs": "89d8bf314032954203325061384eb7c8bf1ac6f6507976d1f5456975981b3ca5",
+    "apps/web/scripts/install-policy.test.mjs": "5e40a458368e5873941d3d7559af55bfc7542742c376dbc600217c2a5a402d0c",
+    "apps/web/scripts/integration.test.mjs": "e283b54e2836baa8552b9f57efec2eec2264a406958d853ae266a62c33441320",
+    "apps/web/scripts/load.mjs": "f0c111c44a95ce4909cbe071626481159a8573aa3a025163dbbe28c05a4e672f",
+    "apps/web/scripts/load.test.mjs": "f6e3c304d7f6280a0ec7e0a1ba63f33064ccf7996c50053165c953c07f4c5ebd",
+    "apps/web/scripts/package.mjs": "ca354513c9450def33bdb5684840752229631f91036ea4f81ca81f86a1dd1d61",
+    "apps/web/scripts/return-to.test.mjs": "3186b5f0b27f70ed5e540681b7ea81ada383d5d5da0dabc3f548a7b22a6a19a5",
+    "apps/web/scripts/run-integration.mjs": "699f3eaa7ad3437b5d15ef5ee339a06dfccaa6100a83698aa9b71c2b890e4086",
+    "apps/web/scripts/runtime-config.d.mts": "4b8e0ae15c7a0d4942df0a4b0e6f6aa44f79fe128ae9ee151d9a4a6c33e29fbf",
+    "apps/web/scripts/runtime-config.mjs": "93f8c43dab1adef243333d1db60c8fd2b1cb9839adae30e4b91bfeb5d5411ec2",
+    "apps/web/scripts/runtime-config.test.mjs": "0be5412760c01e0030df52bf646624ffe3d1eb1558378b021f2f0662131d23a9",
+    "apps/web/scripts/runtime.test.mjs": "b1b430c054a235cde84673d908e8a381dda8088802684fe470069c92f117c624",
+    "apps/web/scripts/security.test.mjs": "58780c1c813830a74dada26e10a78ad323f0e21dc7866510b51c9f420699a3ef",
+    "apps/web/scripts/start.mjs": "b700917eacb9ba2beb70c5d4b5dc790458448f6dfb6c5321eb4c17f62298cb1d",
+    "apps/web/scripts/telemetry.test.mjs": "a9e5eabb571dd959e9e4d90d242b0ec6d6d5d212abd35b0839b56fb98f93925b",
+    "apps/web/scripts/trace-export.test.mjs": "2ff694cb0ef7f4953a6f78ed30a169ffb87a0ab6bada9fa41e0af9a00e135b75",
+    "apps/web/scripts/transaction-cookie.test.mjs": "03d6142e9e81ac9d3ef479c17c5b21db90737e6158c0b4c6d90e83d8a73cb320",
+    "apps/web/scripts/typegen.mjs": "7d2a5a3e13a7302c37a3e676a3abe8f1d05c5d36bea9ecb0ff117e86af72bdd6",
+    "apps/web/src/app/auth/[operation]/route.ts": "0dbd176ea1846b292b31b3d97ab5544c6104ccf6f1ec43edb8c6fc22da828c6e",
+    "apps/web/src/app/globals.css": "6d171f89b112d3a59404be6be94484fde57d82282b2d2c853ad0d4e305d0a2bc",
+    "apps/web/src/app/healthz/route.ts": "523eceafb5df82c8acca82e5065e86e0250738b2c5e687aaef5c247d0cd21322",
+    "apps/web/src/app/layout.tsx": "bf2f069fb454ac18fe666bf8b816ff228a3f7a5d674c9a445e7a894be34af482",
+    "apps/web/src/app/not-found.tsx": "707183e495f31055e4f6fc7ed3787581900518cccfa41ce74f90cd88e8ef9fc2",
+    "apps/web/src/app/page.tsx": "ef848322b4170eb0baecffa6344d717c08305a3d2a2e614e7be31fd4ab423504",
+    "apps/web/src/app/projects/[id]/not-found.tsx": "6d7b30d79fc66cb5244788d0f2809d76795ed954ce4c27f2de570599e9f6e567",
+    "apps/web/src/app/projects/[id]/page.tsx": "e93359dadb07c0cba7e2655555ce3061bfc4d54f64f046210f5e35fe755c41c9",
+    "apps/web/src/app/projects/error.tsx": "747e0744d1815d1ef3d576437f050ac7e4b7e58e8a5ac7041c712294b25d8dc2",
+    "apps/web/src/app/projects/loading.tsx": "7f9b8f485983c55afa62f4f7c31fc556025da41eb8c962cd62a0db9a8c6bf2b4",
+    "apps/web/src/app/projects/not-found.tsx": "fb7d2072029a2fe34a9901477234d034a084985e0390b5ae99cf2dd0529a195a",
+    "apps/web/src/app/projects/page.tsx": "05b2a992d15cc9a533a04f853e515e7f7dbd913fd3d5797ad1babe00ba4b0e10",
+    "apps/web/src/app/sign-in-problem/page.tsx": "c3706955147cef1f01d1c8742117a61582832d4229a0de19b32a5f75a415da34",
+    "apps/web/src/app/signed-out/page.tsx": "385f8950914ea8a6186b3def4aa05cc396312ed88116b44bf12833df185446a8",
+    "apps/web/src/features/projects/actions/projects.ts": "0f89822cb0e522e81235167100b18dad76d1defafeccfad6dd6f9e176607d33e",
+    "apps/web/src/features/projects/components/project-form.tsx": "4bfe463b7bfc839548f7afa81bc2f7e6c1961da96e533de457752803843dce25",
+    "apps/web/src/features/projects/components/project-link.tsx": "e84e634b28c4adb2d55048a7c5f67c10d707db2b4419298708e7b228bb86cdd9",
+    "apps/web/src/features/projects/hooks/use-project-form.ts": "ea41d42797b8b5d44e14d96c63244118ced5aac7e0e0d3de66b3139966aaed2c",
+    "apps/web/src/features/projects/index.ts": "a8df75be52a6ce72c29cacabcf84c124dd379deeb16c700f9571884311288916",
+    "apps/web/src/features/projects/services/projects.server.ts": "a2f3e1cfc372bbc603114682cd818456be674b51c5fb3b0a6e0d003bbab366f3",
+    "apps/web/src/features/projects/services/types.ts": "f15f3896d56da260fb691464eac257ff85caa01d89bac38100eb84b26ad31f36",
+    "apps/web/src/instrumentation.ts": "3f54ae198342f9e47205cacae0e76c13919a0e8f4b2efdb00093df0f93a697b6",
+    "apps/web/src/lib/deployment.ts": "ac2eb4827ac5138ab77063ef613b6698c96087614a1133a11496e68ee3736a03",
+    "apps/web/src/lib/feature-routes.d.mts": "a26338c8cb33d6bf71b7bdd31c74a8830cd355d2ddae16bd56be5071af9e9a90",
+    "apps/web/src/lib/feature-routes.mjs": "983c7365adf00a454a3272408d9be9e690d8cf003ed6eed72c0f9db92af5283a",
+    "apps/web/src/lib/identity.ts": "924630843cbcdfe2052f54cba4a4c1e7e1bda11f70156c9ae943b2a051df5ef6",
+    "apps/web/src/lib/session.server.ts": "9ffd824aaf782925a64d1f266e7969f457d089e9aed9d978842d19e114d40bb4",
+    "apps/web/src/lib/telemetry.ts": "9f8a9a99fcea27ad9cc8eb7c082e607fa8fc808e20ae63c8448bd038774cbdc6",
+    "apps/web/src/lib/trace-export.ts": "f4a9a0a5f112330168220416dcf7486c9295cb0987f13fcf04f59b3a157f2ea0",
+    "apps/web/src/lib/transaction-cookie.d.mts": "385f529706cc38627487cde1ee5c35650384c509e22c95b499e38b0137becb47",
+    "apps/web/src/lib/transaction-cookie.mjs": "b2fbf9f06f099a01369dab145b4b07f2847ea4edc600ae1ce88db74e00889617",
+    "apps/web/src/proxy.ts": "0a54aa21de5cb91bb4e2003e68bdfbe4558d86bfad386461cede70317c3bb806",
+    "apps/web/tests/accessibility.spec.ts": "b85c2dcccb9a6db951af58b8b34f7218af20224912209de16a05f004a26bb460",
+    "apps/web/tests/action-input.spec.ts": "0dc7d1fcc519402bdf50e557c1177b9b8fb6fcbb0f5149175481731df3d0cd5d",
+    "apps/web/tests/adapters/nest.mjs": "a99a8ebdf6460c868dd0b44dc3c0a885fca4226ca1fe63903e213923919ee379",
+    "apps/web/tests/form-regressions.spec.ts": "cb3921ca265de9d5a3239c1a1b14dbc4c3184762f46faa5edadea6b302a99591",
+    "apps/web/tests/integration-bootstrap.mjs": "3309c8c08692b1c272233a79b0cb62b29e08300f6eecace2640e274c0784a9d6",
+    "apps/web/tests/oidc-provider.mjs": "58ad0137163c742f77a56d0f850b19d425f275befd1c5840be3d96fa7caef31d",
+    "apps/web/tests/projects.spec.ts": "842f50b15bf22b81c81576dce5c0924a04d8b6891790470e2d5059e111cc9928",
+    "apps/web/tsconfig.json": "eab62ad2e16309b7462ee2dcbe774ffb47d865448be5f69ea110c3d2f7187286",
+    "apps/web/turbo.json": "4e3c59f48423c0f6d11779e6cebcbe59158e2fa250232b963ae53d900f6f07e0",
+    "apps/web/verification.config.json": "0b2e9348d90f417332008b8d464f192b36e87c736f1732c1a51ed660bcb1570c",
+    "docs/architecture.md": "de841e824c0c65befe1d27d61d0f7406a7d676e43d0f8fd3aa85ab2da3ad1607",
+    "docs/operations.md": "9f7b7566a586fbaa068242c020b3f682c4f69ca1e403693fc185ea7a9882148b",
+    "docs/replacing-the-example.md": "ff0c4b0b3f69c73719947005d6481e1a460d54382cdffa164388b0cc31eaa30c",
+    "package.json": "e5f2c53789478aa6f208a687a9f21ea293d2f996761530f95369e12b9f1854fb",
+    "packages/api-client/contract/accepted.openapi.json": "57172e5fbb3664b8fc0d97d539886c851db353404d4c3ce94a8fe7b88ec8c937",
+    "packages/api-client/contract/openapi.json": "ed5d02dce368de555f31b875d00821a98ef1778e8e6163fe7c29bef52772d8b1",
+    "packages/api-client/package.json": "7e7f8abefc95a6f28d7274e738e374c82b9769c08cd74adbeeb49993c8237a82",
+    "packages/api-client/scripts/check-contract.mjs": "15474a5cf783e6512442883df285d6945ec3f6327f2e9257358d3b319381ae5a",
+    "packages/api-client/scripts/check-generated-contract.mjs": "8c4cf53367fb421e61f37729a161cc8f49bf749fa0699134652bec4d1a6531fd",
+    "packages/api-client/scripts/contract.test.mjs": "44bfc5039e491c40fd84c1dbf19dcb3a7b0fb17c05baaa3579e565c831bb84eb",
+    "packages/api-client/src/api.d.ts": "2b33d45bb50af58a114822d7a7baaabdc9f73b3c30a78da0a8b9fe1a9f8b7266",
+    "packages/eslint-config/base.mjs": "33786fa50445531720fda2a2a2eb9f7fff534dfb8ed87c0d03683b51b2bb9956",
+    "packages/eslint-config/nest.mjs": "e9a971b208c3429a2819b84505e8aa95573881e9831df299a435437dd745389d",
+    "packages/eslint-config/next.mjs": "42377e4a9a9303bb11ee73f8a02f7d8a14d796503b69d40b3f4bc1ad6795a55c",
+    "packages/eslint-config/package.json": "35c60e62416a18e783ca1e5a7987a3d4f426766ac44479ffa347d25621dd5d0d",
+    "packages/typescript-config/base.json": "1dea5ef2cd7a8cfff28356d82ee81f5d854b22949c0ad4ab91d6c878dd6334cb",
+    "packages/typescript-config/nest.json": "3de4d585779a51fd758ea5ccc6b0deff215ea00073258ae24790fe4a82192600",
+    "packages/typescript-config/next.json": "374973b7d21d60889a75e1b366e8b85508cf8e50db82ffb3b4784757e9dfad28",
+    "packages/typescript-config/package.json": "dbe4c07357a4e8f7090c7c30da6df4fc0da6924a32dcb25459fbbb7101805430",
+    "pnpm-lock.yaml": "0cf64435e0f39d1800484446daeea831233e54d982af87ef0065111e884bfb25",
+    "pnpm-workspace.yaml": "ffbc7f5f7972dddc526d19b7e5e51ae3aa4f63bbbdd64935e13ecf9b873ff570",
+    "scripts/check-contract-sync.mjs": "bc940e8c57dd983aa78a3bad00ab25effb475fae233a60180a9f26e95f5f2585",
+    "scripts/check-workspace.mjs": "40b3a64d9731ce345e3cbac721c2466208b0f799f32119aa9efa307396a375ae",
+    "scripts/sbom.mjs": "e333fbbefe7c1c7c7fef2863cc30d62f60152a69869788267f77c5a299263162",
+    "scripts/sync-contract.mjs": "7d832f7563bfa9b4909394df4ae01cd734ff4141fefb5935ab9c825a8bda0af8",
+    "turbo.json": "1c3985415ef7f43ef68ffc610853fb32c171802124ad8aa085ef8ba026cc87a0"
+  },
+  "intake": {
+    "journey": "Owners create, list, read and rename their projects",
+    "actors": [
+      "signed-in owner"
+    ],
+    "auth": "oidc",
+    "database": "postgresql",
+    "deletion": "none",
+    "deployment": "containers",
+    "optionalProfiles": []
+  },
+  "requirements": {
+    "F01": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "F02": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "F03": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "F04": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "F05": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "F06": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "F07": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "F08": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "C01": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "C02": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "C03": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "C04": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "C05": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "C06": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "C07": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "C08": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "C09": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "C10": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "C11": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "C12": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "B01": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "B02": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "B03": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "B04": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "B05": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "B06": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "B07": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "B08": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "B09": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "B10": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "B11": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "B12": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "B13": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "I01": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "I02": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "I03": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "I04": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "I05": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "I06": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "I07": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "I08": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "I09": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "I10": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "I11": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "I12": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "I13": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "I14": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "I15": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "T01": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "T02": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "T03": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "T04": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "T05": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "T06": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "T07": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "T08": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "T09": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "T10": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "T11": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "T12": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "T13": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "T14": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "T15": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "T16": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "E01": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "E02": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "E03": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "E04": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "E05": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "E06": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "E07": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "E08": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "E09": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "E10": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "E11": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "E12": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "Q01": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "Q02": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "Q03": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "Q04": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "Q05": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "Q06": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "Q07": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "Q08": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "Q09": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "Q10": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "Q11": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "Q12": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "Q13": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "Q14": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "Q15": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "D01": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "D02": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "D03": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "D04": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "D05": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "D06": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "D07": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "D08": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "D09": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "D10": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "D11": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "D12": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "D13": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "D14": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "D15": {
+      "status": "not_run",
+      "evidence": []
+    }
+  },
+  "authIntegration": "oidc-selected-provider-unverified",
+  "databaseIntegration": "disposable-test-database-required",
+  "remoteCache": "unconfigured",
+  "deployment": "unverified",
+  "gates": {
+    "G01": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "G02": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "G03": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "G04": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "G05": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "G06": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "G07": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "G08": {
+      "status": "not_run",
+      "evidence": []
+    },
+    "G09": {
+      "status": "not_run",
+      "evidence": []
+    }
+  }
+}
