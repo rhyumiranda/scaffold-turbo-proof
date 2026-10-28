@@ -53,7 +53,12 @@ try {
   A.note('freshSessionTtl', rcli(6379, 'TTL', k2));
   await sleep(75000);
   await p2.goto(BASE + '/projects'); await p2.screenshot({ path: OUT + '/expired-session.png' });
-  A.check('after 75 s the browser is sent to sign-in, no project data', !(await p2.locator('a[href^="/projects/"]').count()) && /auth\/login|8080\/realms|sign/i.test(p2.url() + (await p2.locator('h1').first().textContent().catch(() => ''))), { url: p2.url().replace(/\?.*/, '') });
+  const newCookie = (await ctx2.cookies()).find((c) => c.name === 'app_session')?.value;
+  const noData = !(await p2.locator('a[href^="/projects/"]').count().catch(() => 0));
+  const atSignIn = /auth\/login|8080\/realms/.test(p2.url());
+  const reauth = !!newCookie && newCookie !== c2 && p2.url().startsWith(BASE + '/projects');
+  A.check('after 75 s the browser is sent to sign-in (or re-authenticated by the live IdP SSO session with a NEW app session, never the old one)', atSignIn || reauth, { url: p2.url().replace(/\?.*/, ''), atSignIn, reauthWithNewSession: reauth });
+  A.check('the old session id is not reused after expiry', newCookie !== c2);
   A.check('expired session key is gone from Redis', !scan().includes(k2));
   const e = await raw('after 75 s curl /projects with the cookie', 'GET', '/projects', c2);
   A.check('after 75 s the old cookie gets a sign-in redirect', e.status >= 300 && e.status < 400 && !e.hasProjectLinks, { status: e.status });

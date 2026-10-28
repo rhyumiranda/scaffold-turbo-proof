@@ -57,24 +57,24 @@ verdict_from AC-37
 # ---------- AC-42 ----------
 db_new ac42_test
 redis_up sec-limredis 6380
-P="env OUT=$EV/AC-42 TOXI=http://127.0.0.1:8474 LIM_REDIS=sec-limredis"
+P=(env OUT="$EV/AC-42" TOXI=http://127.0.0.1:8474 LIM_REDIS=sec-limredis)
 api_start lim-a 4142 ac42_test RATE_LIMIT=20 RATE_WINDOW_MS=60000
-run_phase AC-42 single -- $P P_A=4142 node "$N/ac42.mjs" single
+run_phase AC-42 single -- "${P[@]}" P_A=4142 node "$N/ac42.mjs" single
 svc_stop lim-a
 api_start lim-a 4142 ac42_test RATE_LIMIT=20 RATE_WINDOW_MS=60000
-run_phase AC-42 xff -- $P P_A=4142 node "$N/ac42.mjs" xff
+run_phase AC-42 xff -- "${P[@]}" P_A=4142 node "$N/ac42.mjs" xff
 svc_stop lim-a
 RED="LIMITER_MODE=redis LIMITER_REDIS_URL=redis://127.0.0.1:6380 RATE_LIMIT=20 RATE_WINDOW_MS=60000"
 api_start lim-a 4142 ac42_test $RED LIMITER_NAMESPACE=lim-dual
 api_start lim-b 4143 ac42_test $RED LIMITER_NAMESPACE=lim-dual
-run_phase AC-42 dual -- $P P_A=4142 P_B=4143 node "$N/ac42.mjs" dual
+run_phase AC-42 dual -- "${P[@]}" P_A=4142 P_B=4143 node "$N/ac42.mjs" dual
 svc_stop lim-a; svc_stop lim-b
 api_start lim-a 4142 ac42_test $RED LIMITER_NAMESPACE=lim-out
 api_start lim-b 4143 ac42_test $RED LIMITER_NAMESPACE=lim-out
-run_phase AC-42 outage -- $P P_A=4142 P_B=4143 node "$N/ac42.mjs" outage
+run_phase AC-42 outage -- "${P[@]}" P_A=4142 P_B=4143 node "$N/ac42.mjs" outage
 svc_stop lim-a; svc_stop lim-b
 api_start lim-c 4145 ac42_test RATE_LIMIT=1000 MAX_IN_FLIGHT=5 DATABASE_URL="postgresql://postgres:$PG_PASSWORD@127.0.0.1:15432/ac42_test"
-run_phase AC-42 overload -- $P P_A=4145 node "$N/ac42.mjs" overload
+run_phase AC-42 overload -- "${P[@]}" P_A=4145 node "$N/ac42.mjs" overload
 svc_stop lim-c
 db_new ac42prof_test
 (

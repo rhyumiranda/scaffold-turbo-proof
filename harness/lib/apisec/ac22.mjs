@@ -30,7 +30,7 @@ const cases = [
   ['web-2b-AUTH_ISSUER-http-evil-no-flag-http-origin', 'web', { ...without(web, 'AUTH_INSECURE_LOOPBACK'), AUTH_ISSUER: 'http://evil.example' }, /AUTH_ISSUER|AUTH_APP_ORIGIN/],
   ['web-3-AUTH_REDIS_URL-remote-plain', 'web', { ...web, AUTH_REDIS_URL: 'redis://remote.example:6379' }, /AUTH_REDIS_URL/],
   ['web-3b-AUTH_REDIS_URL-remote-with-sentinel-password', 'web', { ...web, AUTH_REDIS_URL: 'redis://:SENTINEL-AC22-4@remote.example:6379' }, /AUTH_REDIS_URL/],
-  ['web-3c-AUTH_REDIS_URL-remote-https-origin-no-flag', 'web', { ...webHttps, AUTH_REDIS_URL: 'redis://:SENTINEL-AC22-6@remote.example:6379' }, /AUTH_REDIS_URL/],
+  ['web-3c-AUTH_REDIS_URL-remote-https-origin-no-flag', 'web', { ...webHttps, AUTH_ISSUER: 'https://id.acme.test:8443/realms/acme', AUTH_REDIS_URL: 'redis://:SENTINEL-AC22-6@remote.example:6379' }, /AUTH_REDIS_URL/],
   ['web-4-unset-API_BASE_URL', 'web', without(web, 'API_BASE_URL'), /API_BASE_URL/],
 ];
 

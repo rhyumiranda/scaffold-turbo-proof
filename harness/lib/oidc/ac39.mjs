@@ -57,7 +57,7 @@ try {
   for (const [name, api, allowed] of [['WEB_ORIGIN unset', env.API_A, null], ['WEB_ORIGIN=http://localhost:3000', env.API_B, 'http://localhost:3000']]) {
     for (const origin of ['https://evil.example', 'null', 'http://localhost:3000']) for (const m of ['OPTIONS', 'GET']) {
       const p = await probe(api, origin, m); rows.push({ name, origin, m, ...p });
-      const okAcao = p.acao === null || (allowed && p.acao === allowed && origin === allowed);
+      const okAcao = p.acao === null || (allowed !== null && p.acao === allowed);
       A.check(`API ${name}: ${m} with Origin ${origin}: ACAO is never * and never reflects an unlisted origin; no Allow-Credentials: true`, okAcao && p.acao !== '*' && p.acac !== 'true', p);
     }
     if (allowed) { const p = await probe(api, allowed, 'OPTIONS'); A.check(`API ${name}: the configured origin is allowed exactly`, p.acao === allowed, p); }

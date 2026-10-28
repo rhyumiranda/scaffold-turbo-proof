@@ -53,7 +53,7 @@ verdict_from AC-35
 svc_stop api
 
 # ---------- HTTPS fixture (AC-34, AC-40) ----------
-T="$WORK/tls"
+T=/tmp/acc-tls   # space-free path (WORK contains a space)
 bash "$HARNESS/infra/oidc/gen-certs.sh" "$T" || sec_fail_all "certificate generation failed" AC-34 AC-40
 export SPKI="$(cat "$T/spki.txt")"
 echo "127.0.0.1 app.acme.test id.acme.test" | sudo tee -a /etc/hosts >/dev/null
@@ -78,6 +78,10 @@ run_phase AC-40 journey -- env OUT="$EV/AC-40" node "$O/ac40.mjs"
 Z="$EV/AC-40/zap"; mkdir -p "$Z"; chmod 777 "$Z"
 zap() { # name url
   ev_run AC-40 "zap-$1" -- timeout 1200 docker run --rm --network host --add-host app.acme.test:127.0.0.1 --add-host id.acme.test:127.0.0.1 --cpus=2 --memory=2g -v "$Z:/zap/wrk:rw" "$ZAP_IMAGE" zap-baseline.py -t "$2" -J "$1.json" -r "$1.html" -I -m 2; }
+# The app redirects to Keycloak, and ZAP attributes the IdP page to the app URL. Stub the IdP (as the earlier prover did) so the web scan sees only the app.
+docker rm -f sec-caddy >/dev/null
+docker run -d --name sec-caddy2 --network host --cpus=2 --memory=2g -v "$HARNESS/infra/oidc/Caddyfile.idpstub:/etc/caddy/Caddyfile:ro" -v "$T:/certs:ro" "$CADDY_IMAGE" >/dev/null
+sleep 2
 zap web https://app.acme.test:8443/
 zap api-live http://127.0.0.1:4103/health/live
 zap api-projects http://127.0.0.1:4103/v1/projects

@@ -27,7 +27,11 @@ const waitMs = (maxTtl + 10) * 1000; console.log(`waiting ${waitMs} ms for the T
 await sleep(waitMs);
 let left = keys().length;
 for (let i = 0; i < 60 && left > 0; i++) { await sleep(2000); left = keys().length; }
-const after = mem();
+// Redis shrinks its hash tables lazily: allow up to 120 s of idle time and keep the series.
+const series = [mem()];
+for (let i = 0; i < 24 && Math.abs(series.at(-1) - baseline) / baseline > 0.10; i++) { await sleep(5000); series.push(mem()); }
+const after = series.at(-1);
+A.note('memorySeriesAfterExpiry', series);
 writeFileSync(OUT + '/mem-after-ttl.txt', `used_memory ${after}\nkeys ${left}\n`);
 const delta = Math.abs(after - baseline) / baseline;
 A.check('all keys expired after the TTL', left === 0, { left });
