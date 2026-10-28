@@ -74,7 +74,7 @@ run_phase AC-34 run -- env OUT="$EV/AC-34" node "$O/ac34.mjs"
 verdict_from AC-34
 
 # ---------- AC-40 ----------
-run_phase AC-40 journey -- env OUT="$EV/AC-40" node "$O/ac40.mjs"
+run_phase AC-40 journey -- env OUT="$EV/AC-40" NODE_EXTRA_CA_CERTS="$T/ca.crt" node "$O/ac40.mjs"
 Z="$EV/AC-40/zap"; mkdir -p "$Z"; chmod 777 "$Z"
 zap() { # name url
   ev_run AC-40 "zap-$1" -- timeout 1200 docker run --rm --network host --add-host app.acme.test:127.0.0.1 --add-host id.acme.test:127.0.0.1 --cpus=2 --memory=2g -v "$Z:/zap/wrk:rw" "$ZAP_IMAGE" zap-baseline.py -t "$2" -J "$1.json" -r "$1.html" -I -m 2; }

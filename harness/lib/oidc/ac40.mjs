@@ -36,14 +36,14 @@ const need = (h) => { const csp = h['content-security-policy'] || ''; const ss =
   return { nonceCsp: /'nonce-[^']+'/.test(ss), noUnsafe: !/'unsafe-(inline|eval)'/.test(ss), frame: /frame-ancestors 'none'/.test(csp), nosniff: h['x-content-type-options'] === 'nosniff', referrer: !!h['referrer-policy'], hsts: !!h['strict-transport-security'], powered: h['x-powered-by'] === undefined }; };
 const ok = (n) => Object.values(n).every(Boolean);
 const seen = new Set();
-for (const d of docs) { const k = d.status + ' ' + d.url; if (seen.has(k) || !/text\/html/.test(d.h['content-type'] || '')) continue; seen.add(k); const n = need(d.h); A.check(`HTML ${d.status} ${d.url.replace(BASE, '') || '/'}: nonce CSP w/o unsafe-*, frame-ancestors 'none', nosniff, Referrer-Policy, HSTS, no X-Powered-By`, ok(n), n); }
+for (const d of docs) { if (!/text\/html/.test(d.h['content-type'] || '')) continue; seen.add(d.status + ' ' + d.url + ' #' + seen.size); const n = need(d.h); A.check(`HTML ${d.status} ${d.url.replace(BASE, '') || '/'}: nonce CSP w/o unsafe-*, frame-ancestors 'none', nosniff, Referrer-Policy, HSTS, no X-Powered-By`, ok(n), n); }
 A.check('the journey loaded HTML documents including a 404 and the error state', docs.some((d) => d.status === 404) && seen.size >= 4, { htmlDocs: seen.size });
 const matrix = [];
 for (const p of ['/', '/projects', '/does-not-exist', '/auth/login', '/signed-out', '/sign-in-problem']) {
-  const r = await ctx.request.get(BASE + p, { maxRedirects: 0 }).catch(() => null); if (!r) continue;
-  const h = r.headers(); const html = /text\/html/.test(h['content-type'] || ''); const n = need(h);
-  matrix.push({ path: p, status: r.status(), html, ...n });
-  if (html) A.check(`curl-style GET ${p} (${r.status()}): full header set`, ok(n), n); else A.check(`curl-style GET ${p} (${r.status()}, non-HTML): no X-Powered-By`, n.powered, { nosniff: n.nosniff, csp: !!h['content-security-policy'] });
+  let r; try { r = await fetch(BASE + p, { redirect: 'manual' }); await r.arrayBuffer(); } catch (e) { A.check(`curl-style GET ${p}: request succeeded`, false, String(e.cause?.code || e.message)); continue; }
+  const h = Object.fromEntries(r.headers); const html = /text\/html/.test(h['content-type'] || ''); const n = need(h);
+  matrix.push({ path: p, status: r.status, html, ...n });
+  if (html) A.check(`curl-style GET ${p} (${r.status}): full header set`, ok(n), n); else A.check(`curl-style GET ${p} (${r.status}, non-HTML): no X-Powered-By`, n.powered, { nosniff: n.nosniff, csp: !!h['content-security-policy'] });
 }
 writeFileSync(OUT + '/headers-matrix.json', JSON.stringify(matrix, null, 1));
 // API headers (Helmet defaults, no X-Powered-By)
