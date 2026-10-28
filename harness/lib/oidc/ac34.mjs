@@ -25,8 +25,16 @@ try {
   await signIn(); const id3 = await sid();
   A.check('re-login without sign-out issues a new id and removes the old session', id3.value !== id2.value && has(id3.value) && !has(id2.value));
   await ctx.addCookies([{ name: '__Host-app_session', value: PRESET, url: BASE + '/', secure: true, httpOnly: true, sameSite: 'Lax' }]);
+  // The server must refuse the pre-set value outright: the request carrying it is sent to sign-in, never served.
+  const direct = await ctx.request.get(BASE + '/projects', { maxRedirects: 0 });
+  const refused = direct.status() === 307 && /\/auth\/login/.test(direct.headers().location || '');
   await page.goto(BASE + '/projects');
-  A.check('replacing the cookie with a pre-set value while signed in grants nothing', !has(PRESET) && !(await page.locator('a[href^="/projects/"]').count()) && (await page.locator('h1').first().textContent()) !== 'Projects' || /8443\/realms|login/i.test(page.url()));
+  // Sign-in then either stops at the provider's login page, or (the provider's single sign-on session is still live,
+  // because same-account re-login keeps it) completes at once and issues a brand-new server-side session id.
+  const after = await sid();
+  const reissued = !!after && after.value !== PRESET && after.value !== id3.value && has(after.value);
+  const stopped = /8443\/realms|login/i.test(page.url()) || (!(await page.locator('a[href^="/projects/"]').count()) && (await page.locator('h1').first().textContent()) !== 'Projects');
+  A.check('replacing the cookie with a pre-set value while signed in grants nothing (refused with a sign-in redirect; any access afterwards is a new server-issued session)', !has(PRESET) && refused && (stopped || reissued), { directStatus: direct.status(), directToLogin: refused, stoppedAtSignIn: stopped, newSessionIssued: reissued });
   A.check('document.cookie exposes no session cookie', !/app_session/.test(await page.evaluate(() => document.cookie)));
 } catch (e) { A.check('script completed without exception', false, String(e.stack || e).slice(0, 400)); }
 await ctx.tracing.stop({ path: OUT + '/trace.zip' }).catch(() => {});

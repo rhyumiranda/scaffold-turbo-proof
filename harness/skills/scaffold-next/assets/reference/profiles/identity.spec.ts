@@ -144,6 +144,7 @@ test('sign-in transactions live only in sealed, bounded, per-sign-in cookies', a
 });
 
 test('prefetches and client-router requests never start a sign-in or touch cookies', async () => {
+  const base = process.env.WEB_TEST_URL!;
   const redis = createClient({ url: process.env.TEST_REDIS_URL! });
   await redis.connect();
   try {
@@ -157,7 +158,14 @@ test('prefetches and client-router requests never start a sign-in or touch cooki
     ];
     for (const headers of variants) {
       for (const path of ['/auth/login?returnTo=/projects', '/projects', '/projects?_rsc=abc']) {
-        const reply = await get(path, { ...headers, cookie: 'app_session=' + 'A'.repeat(43) });
+        const sent = { ...headers, cookie: 'app_session=' + 'A'.repeat(43) };
+        let reply = await get(path, sent);
+        // Next.js answers an RSC request whose _rsc cache key does not match its headers with a 307 to the same path
+        // carrying the right key (the client router always sends the right one). Follow that once, as the router would.
+        if ('rsc' in headers && reply.status === 307 && new URL(reply.location, base).pathname === path.split('?')[0]) {
+          expect(reply.cookies, path).toEqual([]);
+          reply = await get(reply.location, sent);
+        }
         if (path.startsWith('/auth/login') || 'rsc' in headers) expect(reply.status, path).toBe(204);
         expect(reply.cookies, path).toEqual([]);
       }

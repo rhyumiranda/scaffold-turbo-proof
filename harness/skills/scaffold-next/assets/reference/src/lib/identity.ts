@@ -199,7 +199,9 @@ export class Identity {
     // No cookie for this state: a sign-in for another state in progress means the state does not match.
     if (!cookie)
       throw new SignInError(
-        Object.keys(cookies).some((other) => other.startsWith(this.settings.transactionCookiePrefix))
+        Object.entries(cookies).some(
+          ([other, value]) => other !== name && value && other.startsWith(this.settings.transactionCookiePrefix),
+        )
           ? 'state_mismatch'
           : 'missing_transaction',
       );

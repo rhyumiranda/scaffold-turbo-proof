@@ -248,7 +248,7 @@ bad_tb=$(grep -ho 'turbo@[0-9.]*' "$WS"/apps/*/Dockerfile | sort -u | grep -vc "
 bad_nv=$(grep -h '^FROM node:' "$WS"/apps/*/Dockerfile | awk '{print $2}' | sed 's/@.*//' | sort -u | grep -vc "^node:$nv-alpine\$")
 { echo "root pnpm=$pm turbo=$tb node=$nv"; echo "mismatches: pnpm=$bad_pm turbo=$bad_tb node=$bad_nv"; } | tee "$EV/AC-81/pins-compare.txt"
 [ "$bad_pm$bad_tb$bad_nv" = 000 ] || { ok81=0; why81="$why81 version pins differ (pnpm=$bad_pm turbo=$bad_tb node=$bad_nv);"; }
-if [ $ok81 = 1 ]; then verdict AC-81 PASS "migrate exits 0 on a fresh DB (and on re-run); api ready 200; Keycloak browser journey passes against the containers; all 10 missing-variable cases exit non-zero in under 10 s naming the variable; both test:container scripts exit 0; Dockerfile pnpm/turbo/node pins equal the root pins"; else verdict AC-81 FAIL "${why81# }"; fi
+if [ $ok81 = 1 ]; then verdict AC-81 PASS "migrate exits 0 on a fresh DB (and on re-run); api ready 200; Keycloak browser journey passes against the containers; all $nmiss missing-variable cases exit non-zero in under 10 s naming the variable; both test:container scripts exit 0; Dockerfile pnpm/turbo/node pins equal the root pins"; else verdict AC-81 FAIL "${why81# }"; fi
 
 # =====================================================================================================
 # AC-94: SBOMs from the repository's own step
