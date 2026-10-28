@@ -111,3 +111,6 @@ export function contract(app: Awaited<ReturnType<typeof createApp>>) {
   };
   return document;
 }
+
+// Acceptance defect (AC-84): type error only.
+export const typeDefect: number = String(1);
