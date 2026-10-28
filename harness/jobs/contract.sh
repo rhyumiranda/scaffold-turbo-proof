@@ -40,14 +40,21 @@ ev_run AC-45 semgrep -- docker run --rm --cpus=2 --memory=2g -v "$WORK/ac45-src"
 cp "$WORK/ac45-out/semgrep.json" "$EV/AC-45/semgrep.json" 2>/dev/null
 ev_run AC-45 fp-route -- grep -n "identity.begin(request.nextUrl.searchParams.get('returnTo')" "apps/web/src/app/auth/[operation]/route.ts"; r1=$?
 ev_run AC-45 fp-identity -- grep -nE "safeReturnTo|buildAuthorizationUrl" apps/web/src/lib/identity.ts; r2=$?
+ev_run AC-45 fp-cookie-label -- grep -n "hkdfSync('sha256', Buffer.from(secret, 'base64url'), 'oidc-transaction-cookie', 'aes-256-gcm key v1', 32)" apps/web/src/lib/transaction-cookie.mjs; r3=$?
+ev_run AC-45 fp-cookie-secret -- grep -nE "transactionKey\(settings\.transactionSecret\)|AUTH_TRANSACTION_SECRET|transactionSecret = env\.AUTH_TRANSACTION_SECRET" apps/web/src/lib/identity.ts apps/web/src/lib/transaction-cookie.mjs apps/web/scripts/runtime-config.mjs; r4=$?
 scanned="$(jq '.paths.scanned | length' "$EV/AC-45/semgrep.json" 2>/dev/null || echo 0)"
 nfind="$(jq '.results | length' "$EV/AC-45/semgrep.json" 2>/dev/null || echo -1)"
-unexpected="$(jq '[.results[] | select(((.check_id | endswith("express_open_redirect")) and (.path | endswith("apps/web/src/app/auth/[operation]/route.ts"))) | not)] | length' "$EV/AC-45/semgrep.json" 2>/dev/null || echo -1)"
+unexpected="$(jq '[.results[] | select((
+  ((.check_id | endswith("express_open_redirect")) and (.path | endswith("apps/web/src/app/auth/[operation]/route.ts"))) or
+  ((.check_id | endswith("node_secret")) and (.path | endswith("apps/web/src/lib/transaction-cookie.mjs")))
+) | not)] | length' "$EV/AC-45/semgrep.json" 2>/dev/null || echo -1)"
 { echo "False positive: njsscan express_open_redirect at apps/web/src/app/auth/[operation]/route.ts."
-  echo "Reason: the redirect target is oidc.buildAuthorizationUrl() built from the configured issuer; the request's returnTo is only stored server-side after safeReturnTo() (same-origin path only) and never enters that URL."; } > "$EV/AC-45/false-positive-reason.txt"
-fpok=0; [ $r1 = 0 ] && [ $r2 = 0 ] && [ "$(grep -c 'safeReturnTo' "$EV/AC-45/fp-identity.stdout")" -ge 3 ] && grep -q buildAuthorizationUrl "$EV/AC-45/fp-identity.stdout" && fpok=1
+  echo "Reason: the redirect target is oidc.buildAuthorizationUrl() built from the configured issuer; the request's returnTo is only stored server-side after safeReturnTo() (same-origin path only) and never enters that URL."
+  echo "False positive: njsscan node_secret at apps/web/src/lib/transaction-cookie.mjs."
+  echo "Reason: oidc-transaction-cookie and aes-256-gcm key v1 are public HKDF domain-separation labels; the key material comes from validated AUTH_TRANSACTION_SECRET through settings.transactionSecret."; } > "$EV/AC-45/false-positive-reason.txt"
+fpok=0; [ $r1 = 0 ] && [ $r2 = 0 ] && [ $r3 = 0 ] && [ $r4 = 0 ] && [ "$(grep -c 'safeReturnTo' "$EV/AC-45/fp-identity.stdout")" -ge 3 ] && grep -q buildAuthorizationUrl "$EV/AC-45/fp-identity.stdout" && grep -q transactionKey "$EV/AC-45/fp-cookie-secret.stdout" && grep -q AUTH_TRANSACTION_SECRET "$EV/AC-45/fp-cookie-secret.stdout" && fpok=1
 if [ "${scanned:-0}" -gt 50 ] && { [ $sg = 0 ] || { [ $sg = 1 ] && [ "$unexpected" = 0 ] && [ $fpok = 1 ]; }; }; then
-  verdict AC-45 PASS "semgrep exit $sg over $scanned files; $nfind ERROR finding(s), all the documented njsscan open-redirect false positive (returnTo sanitised by safeReturnTo, URL built by buildAuthorizationUrl)"
+  verdict AC-45 PASS "semgrep exit $sg over $scanned files; $nfind ERROR finding(s), all documented false positives with source evidence (sanitised returnTo; public HKDF labels with environment-supplied key material)"
 else
   verdict AC-45 FAIL "semgrep exit $sg scanned=$scanned findings=$nfind unexpected=$unexpected falsePositiveEvidence=$fpok"
 fi
@@ -94,7 +101,7 @@ ac29_case() { # label, breaking (1) or additive (0)
 }
 D=apps/api/src/projects
 neg_start AC-29 a-remove-response-prop
-sed -i '/createdAt!: string;/d' "$WS/$D/dto.ts"; sed -i 's/, createdAt: row.created_at.toISOString() }/ }/' "$WS/$D/service.ts"
+sed -i '/createdAt!: string;/d' "$WS/$D/dto.ts"; sed -i 's/, createdAt: row.createdAt.toISOString() }/ }/' "$WS/$D/service.ts"
 ac29_case a-remove-response-prop 1
 neg_start AC-29 b-optional-to-required
 sed -i 's/required: false, default: 25/required: true, default: 25/' "$WS/$D/dto.ts"

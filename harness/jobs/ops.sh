@@ -140,8 +140,13 @@ unset EV_ENV_NAMES
 ev_run AC-87 v1-schema -- bash -c "docker exec acc-pg psql -U postgres -d $DB87 -Atc \"select string_agg(column_name,',' order by ordinal_position) from information_schema.columns where table_name='projects'\"; docker exec acc-pg psql -U postgres -d $DB87 -Atc 'select count(*) from projects'"
 # v2 on a throwaway branch: additive migration plus code that writes the new column
 git -C "$WS" switch -q -c throwaway/ac87-v2
-python3 "$OPS/v2-patch.py" "$WS"
-git -C "$WS" add -A && git -C "$WS" -c user.name=harness -c user.email=harness@invalid commit -qm "test: AC-87 v2 (additive migration)"
+ev_run AC-87 v2-patch -- python3 "$OPS/v2-patch.py" "$WS" || { ok87=0; why87="$why87 v2 patch failed;"; }
+git -C "$WS" add -A
+if git -C "$WS" diff --cached --quiet; then
+  ok87=0; why87="$why87 v2 patch produced no change;"
+else
+  git -C "$WS" -c user.name=harness -c user.email=harness@invalid commit -qm "test: AC-87 v2 (additive migration)" || { ok87=0; why87="$why87 v2 commit failed;"; }
+fi
 git -C "$WS" show --stat --patch HEAD > "$EV/AC-87/v2.diff"
 ev_run AC-87 build-migrate-v2 -- docker build --progress=plain -f apps/api/Dockerfile --target migrate -t acme-api-migrate:v2 . || { ok87=0; why87="$why87 v2 migrate build;"; }
 ev_run AC-87 build-api-v2 -- docker build --progress=plain -f apps/api/Dockerfile --target runtime -t acme-api:v2 . || { ok87=0; why87="$why87 v2 api build;"; }

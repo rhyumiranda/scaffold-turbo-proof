@@ -236,9 +236,9 @@ nmiss=$(tail -n +2 "$EV/AC-81/missing-config.tsv" | grep -c .)
 badmiss=$(tail -n +2 "$EV/AC-81/missing-config.tsv" | awk -F'\t' '$3!="exited" || $4==0 || $5=="running" || $5+0>=10 || $6!="yes"' | tee "$EV/AC-81/missing-config-bad.tsv" | grep -c .)
 [ "$nmiss" = 11 ] && [ "$badmiss" = 0 ] || { ok81=0; why81="$why81 missing-config cases=$nmiss bad=$badmiss;"; }
 # The repo's own container checks (they build the image themselves; layers are cached by now).
-( test_env
+( test_env ac81_test
   ev_run AC-81 test-container-api -- pnpm --filter @repo/api test:container ) || { ok81=0; why81="$why81 api test:container;"; }
-( test_env
+( test_env ac81_test
   ev_run AC-81 test-container-web -- pnpm --filter @repo/web test:container ) || { ok81=0; why81="$why81 web test:container;"; }
 # Versions in the Dockerfiles match the root pins.
 ev_run AC-81 pins -- bash -c "grep -h 'pnpm@\|turbo@\|FROM node' apps/*/Dockerfile; echo '--- root'; jq -r '.packageManager, .devDependencies.turbo' package.json; cat .nvmrc"
