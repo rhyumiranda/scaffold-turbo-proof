@@ -130,6 +130,16 @@
               }
             }
           },
+          "408": {
+            "description": "Safe problem response",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "409": {
             "description": "Safe problem response",
             "content": {
@@ -270,6 +280,16 @@
               }
             }
           },
+          "408": {
+            "description": "Safe problem response",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "409": {
             "description": "Safe problem response",
             "content": {
@@ -396,6 +416,16 @@
               }
             }
           },
+          "408": {
+            "description": "Safe problem response",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "409": {
             "description": "Safe problem response",
             "content": {
@@ -495,7 +525,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProjectResponse"
+                  "$ref": "#/components/schemas/RenamedProjectResponse"
                 }
               }
             }
@@ -521,6 +551,16 @@
             }
           },
           "404": {
+            "description": "Safe problem response",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "408": {
             "description": "Safe problem response",
             "content": {
               "application/problem+json": {
@@ -680,6 +720,27 @@
           "expectedVersion"
         ],
         "additionalProperties": false
+      },
+      "RenamedProjectResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 2
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "version"
+        ]
       },
       "ProblemDetails": {
         "type": "object",

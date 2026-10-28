@@ -4,9 +4,7 @@ import { Database } from '../platform/index.js';
 // the owner; other modules read projects through ProjectsService, never through this repository or the model.
 const columns = { id: true, name: true, version: true, createdAt: true } as const;
 export type ProjectRow = { id: string; name: string; version: number; createdAt: Date };
-function isNotFound(error: unknown): boolean {
-  return typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2025';
-}
+export type RenamedProjectRow = Pick<ProjectRow, 'id' | 'name' | 'version'>;
 @Injectable()
 export class ProjectsRepository {
   constructor(private readonly db: Database) {}
@@ -27,16 +25,11 @@ export class ProjectsRepository {
     return this.db.client.project.findFirst({ where: { id, ownerId }, select: columns });
   }
   // Optimistic concurrency in one statement: the row changes only while it still has the expected version.
-  async renameIfVersion(ownerId: string, id: string, name: string, version: number): Promise<ProjectRow | null> {
-    try {
-      return await this.db.client.project.update({
-        where: { id, ownerId, version },
-        data: { name, version: { increment: 1 } },
-        select: columns,
-      });
-    } catch (error) {
-      if (isNotFound(error)) return null;
-      throw error;
-    }
+  async renameIfVersion(ownerId: string, id: string, name: string, version: number): Promise<RenamedProjectRow | null> {
+    const result = await this.db.client.project.updateMany({
+      where: { id, ownerId, version },
+      data: { name, version: { increment: 1 } },
+    });
+    return result.count === 1 ? { id, name, version: version + 1 } : null;
   }
 }
