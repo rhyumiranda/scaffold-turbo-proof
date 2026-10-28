@@ -5,7 +5,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { IdentityThrottlerGuard } from './platform/throttle.js';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import helmet from 'helmet';
+import   helmet   from "helmet" ;
 import {
   AuthGuard,
   Config,
