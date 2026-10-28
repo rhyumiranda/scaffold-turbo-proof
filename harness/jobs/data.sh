@@ -103,7 +103,7 @@ ac48() {
   ev_run $ac integration -- pnpm --filter @repo/api test:integration; local rt=$?
   unset EV_ENV_NAMES
   [ "$rt" = 0 ] || { ok=0; why="$why test:integration exit $rt;"; }
-  grep -nE "rejects\(|projects_owner_order" "$WS/apps/api/test/migrations.test.mjs" > "$f/test-assertions.txt"
+  grep -nE "rejects\(|projects_owner_order|owner_id, created_at DESC" "$WS/apps/api/test/migrations.test.mjs" > "$f/test-assertions.txt"
   local pair
   for pair in "23505|primary key" "23502|owner not null" "23502|name not null" "23514|owner length" "23514|name minimum length" "23514|name maximum length" "23514|name trimmed" "23514|version positive"; do
     grep -E "rejects\(.*'${pair%%|*}', '${pair##*|}'" "$f/test-assertions.txt" > /dev/null || { ok=0; why="$why no test asserting SQLSTATE ${pair%%|*} for ${pair##*|};"; }
