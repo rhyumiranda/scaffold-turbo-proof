@@ -24,6 +24,8 @@ for (const [ac, shards] of Object.entries(target.parts ?? {})) {
     commit: parts[0].commit ?? '',
     skillTree: parts[0].skillTree ?? '',
   });
+  // Saved as an ordinary verdict too, so later steps (finalize-deferred.mjs) can read the combined result.
+  writeFileSync(join(dir, `${ac}.json`), JSON.stringify(byAc.get(ac), null, 2));
 }
 const rows = [];
 for (let n = 1; n <= 107; n++) {

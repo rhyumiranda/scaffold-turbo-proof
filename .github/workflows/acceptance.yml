@@ -73,6 +73,11 @@ jobs:
         with: { persist-credentials: false }
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with: { path: all, pattern: evidence-*, merge-multiple: true }
-      - run: node harness/aggregate.mjs all >> "$GITHUB_STEP_SUMMARY"
+      # Combine shards, apply deferred prerequisites, then build the table. The GitHub criteria (AC-24, 28, 83, 84, 93)
+      # come from harness/github/prs.sh and are combined by harness/final.sh on the owner's machine.
+      - run: |
+          node harness/aggregate.mjs all > /dev/null
+          node harness/finalize-deferred.mjs all
+          node harness/aggregate.mjs all >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with: { name: acceptance-all, path: all, retention-days: 30 }
