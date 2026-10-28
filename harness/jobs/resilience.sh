@@ -115,9 +115,9 @@ import json, sys
 rows = json.load(open(sys.argv[1])); api, web = int(sys.argv[2]), int(sys.argv[3])
 bad = 0
 for r in rows:
-    limit = (api if r["target"].endswith(":4100") else web) + 1 + 0.3  # +1 s sweep interval per criterion, +0.3 s measurement jitter
+    limit = (api if r["target"].endswith(":4100") else web) + 1  # literal bound: requestTimeout + 1 s
     good = r["closed_after_s"] is not None and r["closed_after_s"] <= limit
-    print(r["target"], r["mode"], r["closed_after_s"], "limit", limit, "ok" if good else "BAD"); bad += not good
+    print(r["target"], r["mode"], "measured", r["closed_after_s"], "s, literal bound", limit, "s", "ok" if good else "BAD"); bad += not good
 sys.exit(1 if bad else 0)
 PY
   # (4) identity provider JWKS stall: fresh API (no cached keys), unknown kid forces a fetch
@@ -131,7 +131,7 @@ PY
   unset EV_ENV_NAMES FORGED
   dro_stop api-jwks 15
   api_start api-1 127.0.0.1:15432 $DB || return
-  if [ $ok = 1 ]; then verdict $ac PASS "DB stall: $(awk '{printf "%s %s %ss; ", $1,$2,$3}' "$f/db-stall-results.txt"); web->API stall error UI $(jq -r .create.ms "$f/web-stall.json") ms with input kept; JWKS stall $(cat "$f/jwks-stall.stdout"); slow clients closed within requestTimeout+1s"; else verdict $ac FAIL "${why# }"; fi
+  if [ $ok = 1 ]; then verdict $ac PASS "DB stall: $(awk '{printf "%s %s %ss; ", $1,$2,$3}' "$f/db-stall-results.txt"); web->API stall error UI $(jq -r .create.ms "$f/web-stall.json") ms with input kept; JWKS stall $(cat "$f/jwks-stall.stdout"); slow clients: max measured close API $(grep -E ":4100" "$f/slowloris-verdict.txt" | awk '{m=($4>m)?$4:m} END{print m}') s (bound ${at}ms+1s), web $(grep -E ":3000" "$f/slowloris-verdict.txt" | awk '{m=($4>m)?$4:m} END{print m}') s (bound ${wt}ms+1s)"; else verdict $ac FAIL "${why# }"; fi
 }
 
 ac56() {

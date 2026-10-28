@@ -209,14 +209,14 @@ ac51() {
   toxi_untoxic_ev $ac toxic-remove pg latency5s
   wait "$sampler"
   unset EV_ENV_NAMES URL
-  ev_run $ac analysis -- python3 "$DRO_DIR/ac51_check.py" "$f" 5 6 0.5
+  ev_run $ac analysis -- python3 "$DRO_DIR/ac51_check.py" "$f" 5 6 0
   local rc; rc="$(cat "$f/analysis.exit")"
   [ "$rc" = 0 ] || { ok=0; why="$why $(jq -r '.why | join("; ")' "$f/analysis.stdout" 2>/dev/null)"; }
   # The API recovers once the delay is gone.
   local after; after="$(curl -s -o /dev/null -w '%{http_code}' -H "authorization: Bearer $TOKEN" "$API_DIRECT/v1/projects?limit=1")"
   echo "after latency removed: $after" > "$f/recovery.txt"
   [ "$after" = 200 ] || { ok=0; why="$why API did not recover (status $after);"; }
-  if [ $ok = 1 ]; then verdict $ac PASS "200 VUs x 60 s: max $(jq -r .load_max_all "$f/analysis.stdout") DB connections (pool max 5); 5 s DB latency: 50/50 -> $(jq -c .latency_status_histogram "$f/analysis.stdout"), slowest $(jq -r .latency_max_seconds "$f/analysis.stdout") s (deadline 6 s)"; else verdict $ac FAIL "${why# }"; fi
+  if [ $ok = 1 ]; then verdict $ac PASS "200 VUs x 60 s: max $(jq -r .load_max_all "$f/analysis.stdout") DB connections (pool max 5); 5 s DB latency: 50/50 -> $(jq -c .latency_status_histogram "$f/analysis.stdout"), slowest $(jq -r .latency_max_seconds "$f/analysis.stdout") s (literal deadline 6 s, no slack)"; else verdict $ac FAIL "${why# }"; fi
 }
 
 # ---------- AC-50 ----------

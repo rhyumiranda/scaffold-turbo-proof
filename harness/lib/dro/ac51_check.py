@@ -29,7 +29,7 @@ for _, c, _ in rows: codes[c] = codes.get(c, 0) + 1
 res["latency_status_histogram"] = codes
 res["latency_max_seconds"] = max((r[2] for r in rows), default=None)
 if any(c not in ("503", "504") for _, c, _ in rows): bad(f"statuses under DB latency were {codes}, expected only 503/504")
-if rows and res["latency_max_seconds"] > deadline + slack: bad(f"slowest request {res['latency_max_seconds']}s exceeds the {deadline}s request deadline (+{slack}s measurement slack)")
+if rows and res["latency_max_seconds"] > deadline + slack: bad(f"slowest request {res['latency_max_seconds']}s exceeds the {deadline}s request deadline (literal bound, slack {slack}s)")
 lat_samples = []
 try:
     for line in open(f"{d}/pg-connections-latency.txt"):
