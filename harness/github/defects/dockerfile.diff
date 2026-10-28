@@ -1,13 +1,12 @@
 diff --git a/apps/api/Dockerfile b/apps/api/Dockerfile
-index 6dcea2c..0dc472e 100644
+index 61b52d1..62083f7 100644
 --- a/apps/api/Dockerfile
 +++ b/apps/api/Dockerfile
-@@ -34,7 +34,7 @@ ENV NODE_ENV=production
+@@ -72,6 +72,6 @@ ENV NODE_ENV=production
  WORKDIR /app
- # Files stay owned by root, so the runtime user can read but never modify code or dependencies.
  COPY --from=builder /runtime/api/ ./
 -COPY --from=builder /repo/apps/api/dist ./dist
 +COPY --from=builder /repo/apps/api/dist-does-not-exist ./dist
  USER node
- COPY --from=builder /repo/apps/api/scripts/migrate.mjs ./scripts/migrate.mjs
- COPY --from=builder /repo/apps/api/migrations ./migrations
+ EXPOSE 4100
+ CMD ["node", "dist/main.js"]
