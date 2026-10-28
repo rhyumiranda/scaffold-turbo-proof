@@ -1,8 +1,37 @@
 {
   "repository": "https://github.com/rhyumiranda/scaffold-turbo-proof.git",
-  "commit": "1960510e7217464f6f341dad1d6750464e7aed3c",
-  "skillTree": "d3f49f1905e8c7dcad7728c3ff030c95193043a48f4213fd288d73bf40076d2b",
+  "commit": "d9475d616a596bcfa00e917106a442aec0137361",
+  "skillTree": "a487daf5e53d7406cc35e4ac8b997e9d1b90714859836e657be040b93492137a",
   "jobs": [
-    "workspace"
-  ]
+    "workspace",
+    "github",
+    "generator",
+    "turbo",
+    "contract",
+    "apisec",
+    "apisec2",
+    "apisec3",
+    "apisec4",
+    "apisec5",
+    "apisec6",
+    "oidc",
+    "data",
+    "resilience",
+    "observability",
+    "ux",
+    "quality",
+    "quality2",
+    "images",
+    "ops",
+    "deferred"
+  ],
+  "parts": {
+    "AC-41": [
+      "core",
+      "own",
+      "diff",
+      "fuzzA",
+      "fuzzB"
+    ]
+  }
 }

@@ -19,9 +19,9 @@ Unit checks cover architecture boundaries, logging redaction, bundle budgets, co
 The committed bootstrap connects this frontend to `apps/api`; no external project path is needed. Use only a confirmed disposable PostgreSQL database:
 
 ```sh
-DATABASE_URL=postgresql://test_user@127.0.0.1:5432/test_database NODE_ENV=test pnpm test:integration
+DATABASE_URL=postgresql://test_user@127.0.0.1:5432/acme_test NODE_ENV=test pnpm test:integration
 pnpm --filter @repo/web exec playwright install chromium
-DATABASE_URL=postgresql://test_user@127.0.0.1:5432/test_database NODE_ENV=test pnpm test:e2e
+DATABASE_URL=postgresql://test_user@127.0.0.1:5432/acme_test NODE_ENV=test pnpm test:e2e
 ```
 
 The harness applies reviewed migrations, creates short-lived local test identities, starts the real API and production Next server, runs the pinned Playwright CLI, and closes owned processes. It rejects missing infrastructure. Never use shared or production credentials.
