@@ -37,7 +37,8 @@ printf '\n// AC-76: web-only change\n' >> "$WS/apps/web/src/app/page.tsx"
 git -C "$WS" add -A && git -C "$WS" -c user.name=harness -c user.email=harness@invalid commit -qm "test: AC-76 web-only change"
 git -C "$WS" show --stat --patch HEAD > "$EV/AC-76/web-only.diff"
 ev_run AC-76 rebuild-api-after-web-change -- docker build --progress=plain -f apps/api/Dockerfile --target runtime -t acme-api:rebuild . || { ok76=0; why76="$why76 api rebuild;"; }
-git -C "$WS" switch -q - && git -C "$WS" branch -q -D throwaway/ac76
+git -C "$WS" switch -q --detach "$TARGET_SHA" && git -C "$WS" branch -q -D throwaway/ac76 || echo "FAILED to return to target commit" >&2
+[ "$(git -C "$WS" rev-parse HEAD)" = "$TARGET_SHA" ] || { ok76=0; why76="$why76 workspace not back on target commit;"; }
 ev_run AC-76 layers -- bash -c 'docker image inspect -f "{{json .RootFS.Layers}}" acme-api; docker image inspect -f "{{json .RootFS.Layers}}" acme-api:rebuild'
 python3 - "$EV/AC-76/rebuild-api-after-web-change.stderr" > "$EV/AC-76/layers-cached.txt" <<'PY'
 import re, sys
