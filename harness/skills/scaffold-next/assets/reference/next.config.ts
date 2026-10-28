@@ -1,5 +1,5 @@
 import type { NextConfig } from 'next';
-import { deploymentSettings } from './src/lib/deployment';
+import { deploymentSettings, limitClientChunkSize } from './src/lib/deployment';
 const config: NextConfig = {
   ...deploymentSettings(),
   poweredByHeader: false,
@@ -8,6 +8,9 @@ const config: NextConfig = {
   output: 'standalone',
   // Pin the tracing root to this app. Without it, any lockfile in a parent folder moves server.js out of .next/standalone/.
   outputFileTracingRoot: process.cwd(),
+  webpack(webpackConfig, { isServer }) {
+    return limitClientChunkSize(webpackConfig, isServer);
+  },
   async headers() {
     return [
       {

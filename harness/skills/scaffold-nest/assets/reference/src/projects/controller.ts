@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query, Req } 
 import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ApiProblems } from '../platform/index.js';
 import type { IdentityRequest } from '../platform/index.js';
-import { CreateProject, ListProjects, ProjectResponse, RenameProject } from './dto.js';
+import { CreateProject, ListProjects, ProjectResponse, RenamedProjectResponse, RenameProject } from './dto.js';
 import { ProjectsService } from './service.js';
 @ApiTags('projects')
 @ApiBearerAuth()
@@ -28,7 +28,7 @@ export class ProjectsController {
   }
   @Patch(':id')
   @ApiParam({ name: 'id', format: 'uuid' })
-  @ApiOkResponse({ type: ProjectResponse })
+  @ApiOkResponse({ type: RenamedProjectResponse })
   rename(@Req() request: IdentityRequest, @Param('id', ParseUUIDPipe) id: string, @Body() input: RenameProject) {
     return this.projects.rename(request.identity.subject, id, input.name, input.expectedVersion);
   }

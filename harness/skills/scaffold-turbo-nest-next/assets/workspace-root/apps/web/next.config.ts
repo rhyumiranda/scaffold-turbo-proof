@@ -1,6 +1,6 @@
 import path from 'node:path';
 import type { NextConfig } from 'next';
-import { deploymentSettings } from './src/lib/deployment';
+import { deploymentSettings, limitClientChunkSize } from './src/lib/deployment';
 
 const config: NextConfig = {
   ...deploymentSettings(),
@@ -9,6 +9,9 @@ const config: NextConfig = {
   images: { unoptimized: true },
   output: 'standalone',
   outputFileTracingRoot: path.join(process.cwd(), '../..'),
+  webpack(webpackConfig, { isServer }) {
+    return limitClientChunkSize(webpackConfig, isServer);
+  },
   async headers() {
     return [
       {

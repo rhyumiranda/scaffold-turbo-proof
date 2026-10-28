@@ -87,6 +87,12 @@ export interface components {
             name: string;
             expectedVersion: number;
         };
+        RenamedProjectResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            version: number;
+        };
         ProblemDetails: {
             /** @enum {string} */
             type: "about:blank";
@@ -521,7 +527,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProjectResponse"];
+                    "application/json": components["schemas"]["RenamedProjectResponse"];
                 };
             };
             /** @description Safe problem response */

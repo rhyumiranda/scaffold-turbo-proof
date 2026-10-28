@@ -15,10 +15,12 @@ function fakeDatabase(result = () => row) {
     calls.push({ operation, args });
     const value = result(operation, calls.length);
     if (operation === 'findMany') return value ? [value] : [];
-    if (operation === 'update' && !value) throw Object.assign(new Error('Record not found'), { code: 'P2025' });
+    if (operation === 'updateMany') return { count: value ? 1 : 0 };
     return value;
   };
-  const project = Object.fromEntries(['create', 'findMany', 'findFirst', 'update'].map((name) => [name, record(name)]));
+  const project = Object.fromEntries(
+    ['create', 'findMany', 'findFirst', 'updateMany'].map((name) => [name, record(name)]),
+  );
   return { calls, db: { client: { project } } };
 }
 test('application operations scope identity and minimize output without HTTP', async () => {
@@ -42,6 +44,8 @@ test('application operations scope identity and minimize output without HTTP', a
   const saved = await service.rename('alice', row.id, 'New', 1);
   assert.deepEqual(calls[3].args.where, { id: row.id, ownerId: 'alice', version: 1 });
   assert.deepEqual(calls[3].args.data, { name: 'New', version: { increment: 1 } });
+  assert.deepEqual(Object.keys(saved).sort(), ['id', 'name', 'version']);
+  assert.equal(saved.name, 'New');
   assert.equal(saved.version, 2);
   for (const call of calls) assert.ok(!('ownerId' in (call.args.select ?? {})), 'owner never selected');
 });
@@ -55,7 +59,7 @@ test('rename distinguishes an owned version conflict from an inaccessible record
     );
     assert.deepEqual(
       calls.map((call) => call.operation),
-      ['update', 'findFirst'],
+      ['updateMany', 'findFirst'],
     );
   }
 });
@@ -63,7 +67,7 @@ test('rename distinguishes an owned version conflict from an inaccessible record
 test('rename rethrows database failures other than a missing conditional row', async () => {
   const failure = Object.assign(new Error('connection failed'), { code: 'P1001' });
   const { db } = fakeDatabase((operation) => {
-    if (operation === 'update') throw failure;
+    if (operation === 'updateMany') throw failure;
     return row;
   });
   const service = new ProjectsService(new ProjectsRepository(db));

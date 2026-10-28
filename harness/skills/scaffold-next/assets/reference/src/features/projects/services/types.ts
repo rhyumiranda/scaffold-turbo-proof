@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { components } from '@/generated/api';
 export type Project = components['schemas']['ProjectResponse'];
+export type RenamedProject = components['schemas']['RenamedProjectResponse'];
 export const projectSchema: z.ZodType<Project> = z.object({
   id: z.uuid(),
   name: z.string().min(1).max(100),
@@ -8,6 +9,11 @@ export const projectSchema: z.ZodType<Project> = z.object({
   createdAt: z.iso.datetime({ offset: true }),
 });
 export const projectsSchema = z.array(projectSchema);
+export const renamedProjectSchema: z.ZodType<RenamedProject> = z.object({
+  id: z.uuid(),
+  name: z.string().min(1).max(100),
+  version: z.number().int().min(2),
+});
 export const nameSchema = z
   .string()
   .trim()

@@ -30,7 +30,7 @@ CI always attempts an isolated real API browser journey. Until `tests/integratio
 
 ## 005 — Performance budget scope
 
-`performance-budget.json` initially limits all individually gzipped client chunks to 400,000 bytes. This is a conservative whole-application asset regression guard, not a route-transfer budget or field-performance result. Record the measured bundle, routes, target devices/network and reason here before changing it. Obtain actual user latency/Core Web Vitals after deployment.
+`performance-budget.json` initially limits all individually gzipped client chunks to 400,000 bytes. This is a conservative whole-application asset regression guard, not a route-transfer budget or field-performance result. The webpack client build also uses a 100,000-byte maximum split size so the shared Next runtime can yield between evaluation tasks on throttled mobile hardware; the total-byte check still catches duplication. Record the measured bundle, routes, target devices/network and reason here before changing either limit. Obtain actual user latency/Core Web Vitals after deployment.
 
 ## 006 — Initial accepted API contract
 

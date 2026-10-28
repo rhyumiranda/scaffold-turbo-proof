@@ -6,7 +6,7 @@ import { accessSession } from '@/lib/session.server';
 import { context, propagation, trace, SpanStatusCode, metrics } from '@opentelemetry/api';
 import { safeRequestRecord, type RequestEvent } from '@/lib/telemetry';
 import { z } from 'zod';
-import { projectSchema, projectsSchema } from './types';
+import { projectSchema, projectsSchema, renamedProjectSchema } from './types';
 export class ApiError extends Error {
   constructor(readonly status: number) {
     super('API request failed');
@@ -102,5 +102,5 @@ export async function createProject(name: string) {
 }
 export async function renameProject(id: string, name: string, expectedVersion: number) {
   z.uuid().parse(id);
-  return request('projects.rename', '/v1/projects/' + id, projectSchema, 'PATCH', { name, expectedVersion });
+  return request('projects.rename', '/v1/projects/' + id, renamedProjectSchema, 'PATCH', { name, expectedVersion });
 }

@@ -525,7 +525,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProjectResponse"
+                  "$ref": "#/components/schemas/RenamedProjectResponse"
                 }
               }
             }
@@ -720,6 +720,27 @@
           "expectedVersion"
         ],
         "additionalProperties": false
+      },
+      "RenamedProjectResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 2
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "version"
+        ]
       },
       "ProblemDetails": {
         "type": "object",

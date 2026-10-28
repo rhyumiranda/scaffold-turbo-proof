@@ -4,10 +4,10 @@ Actor: authenticated user identified by verified JWT subject. Operations: create
 
 1. Controller validates DTO/path/query and extracts verified subject.
 2. Service uses that subject in every read/write predicate (through the module's private repository, the only code that touches the `Project` model); clients cannot set owner_id.
-3. Create trims a nonempty name up to 100 characters and persists version 1. Output contains id/name/version/createdAt only.
+3. Create trims a nonempty name up to 100 characters and persists version 1. Create/read/list output contains id/name/version/createdAt only.
 4. List orders by created_at/id and allows integer limit 1–100, offset 0–10000.
 5. Read another user's or absent UUID returns 404.
-6. Rename atomically matches id + owner + expectedVersion. One competing writer wins; the loser receives 409. The client must reload/reconcile, never blindly replay.
+6. Rename atomically matches id + owner + expectedVersion. One competing writer wins; the loser receives 409. Its response contains the known id/name/new version without a second query. The client must reload/reconcile, never blindly replay.
 
 Tests: `test/api.test.mjs` performs real HTTP plus PostgreSQL, validates actual bodies against OpenAPI, checks authority, malformed input, persistence and competing writes. `test/contracts.test.mjs` rejects deliberately broken schema fixtures. `test/migrations.test.mjs` proves clean install, compatible upgrade, failed-migration rollback, applied-checksum protection and safe concurrent runs with `prisma migrate deploy` in isolated test schemas, the database constraints, zero foreign keys, and that the migrations produce exactly the Prisma schema.
 

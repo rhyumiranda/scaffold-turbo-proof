@@ -46,3 +46,8 @@ export class ProjectResponse {
   @ApiProperty({ type: 'integer', minimum: 1 }) version!: number;
   @ApiProperty({ format: 'date-time' }) createdAt!: string;
 }
+export class RenamedProjectResponse {
+  @ApiProperty({ format: 'uuid' }) id!: string;
+  @ApiProperty() name!: string;
+  @ApiProperty({ type: 'integer', minimum: 2 }) version!: number;
+}
