@@ -1,11 +1,12 @@
 import * as oidc from 'openid-client';
 import { createClient } from '@redis/client';
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 
 // One rule set for startup validation (scripts/start.mjs) and runtime use.
 export { identitySettings } from '../../scripts/runtime-config.mjs';
 import { identitySettings } from '../../scripts/runtime-config.mjs';
 import { homePath } from './feature-routes.mjs';
+import { openTransaction, sealTransaction, transactionKey, TransactionError } from './transaction-cookie.mjs';
 type Settings = NonNullable<ReturnType<typeof identitySettings>>;
 type Session = { accessToken: string; refreshToken?: string; expires: number; until: number; subject: string };
 const opaque = () => randomBytes(32).toString('base64url');
@@ -22,13 +23,73 @@ export function safeReturnTo(value: string | null | undefined, origin: string): 
   }
 }
 const validId = (id: string) => /^[a-zA-Z0-9_-]{43}$/.test(id);
+const same = (a: string, b: string) => {
+  const left = Buffer.from(a),
+    right = Buffer.from(b);
+  return left.length === right.length && timingSafeEqual(left, right);
+};
+// Why a sign-in was refused or could not start. Every field is a fixed code or a validated provider error code: never a
+// token, authorization code, cookie, secret, verifier, state, nonce or URL, so the record is safe to log as is.
+export type SignInReason =
+  | 'invalid_callback'
+  | 'missing_transaction'
+  | 'invalid_transaction'
+  | 'expired_transaction'
+  | 'provider_error'
+  | 'state_mismatch'
+  | 'provider_unavailable'
+  | 'token_exchange_failed'
+  | 'token_contract_incomplete'
+  | 'session_store_unavailable';
+const code = (value: unknown, pattern: RegExp) =>
+  typeof value === 'string' && pattern.test(value) ? value : undefined;
+export class SignInError extends Error {
+  readonly reason: SignInReason;
+  readonly providerError?: string;
+  readonly errorCode?: string;
+  constructor(reason: SignInReason, cause?: unknown, providerError?: unknown) {
+    super(reason);
+    this.name = 'SignInError';
+    this.reason = reason;
+    // OAuth error codes are short ASCII words (RFC 6749 section 4.1.2.1); anything else is reported as unrecognized.
+    if (providerError !== undefined && providerError !== null)
+      this.providerError = code(providerError, /^[A-Za-z0-9_.-]{1,64}$/) ?? 'unrecognized';
+    if (cause && typeof cause === 'object') {
+      const { code: errorCode, name } = cause as { code?: unknown; name?: unknown };
+      const safe = code(errorCode, /^[A-Z][A-Z0-9_]{1,63}$/) ?? code(name, /^[A-Za-z]{1,40}$/);
+      if (safe) this.errorCode = safe;
+    }
+  }
+}
+export function signInRecord(
+  event: 'identity.callback.rejected' | 'identity.login.unavailable',
+  error: unknown,
+  requestId?: string | null,
+) {
+  const failure =
+    error instanceof SignInError
+      ? error
+      : new SignInError(event === 'identity.login.unavailable' ? 'provider_unavailable' : 'invalid_callback', error);
+  return {
+    time: new Date().toISOString(),
+    level: event === 'identity.login.unavailable' ? 'error' : 'warn',
+    service: 'web',
+    event,
+    requestId: requestId && /^[0-9a-f-]{36}$/.test(requestId) ? requestId : undefined,
+    reason: failure.reason,
+    ...(failure.providerError ? { providerError: failure.providerError } : {}),
+    ...(failure.errorCode ? { errorCode: failure.errorCode } : {}),
+  };
+}
 export class Identity {
   readonly settings: Settings;
   private redis: ReturnType<typeof createClient>;
   private connecting: Promise<unknown> | undefined;
   private configuration: Promise<oidc.Configuration> | undefined;
+  private readonly sealKey: Buffer;
   constructor(settings: Settings) {
     this.settings = settings;
+    this.sealKey = transactionKey(settings.transactionSecret);
     this.redis = createClient({
       url: settings.redis,
       socket: { connectTimeout: 1000, reconnectStrategy: false },
@@ -45,6 +106,30 @@ export class Identity {
     }
     if (this.connecting) await this.connecting;
     return this.redis.withCommandOptions({ abortSignal: AbortSignal.timeout(1500) });
+  }
+  // Each sign-in in progress has its own cookie, named after a hash of its state: the callback reads the cookie for the
+  // state it carries, so two tabs (or a double click) never overwrite each other's transaction.
+  transactionCookieName(state: string) {
+    return this.settings.transactionCookiePrefix + createHash('sha256').update(state).digest('hex').slice(0, 16);
+  }
+  private binding(name: string) {
+    return { name, origin: this.settings.origin };
+  }
+  // Transaction cookies to clear before a new sign-in starts: unreadable or expired ones, and the oldest beyond four
+  // so that, with the new one, a browser never holds more than five. cookies maps cookie name to value.
+  staleTransactions(cookies: Record<string, string>, now = Date.now()) {
+    const live: { name: string; issuedAt: number }[] = [],
+      stale: string[] = [];
+    for (const [name, value] of Object.entries(cookies)) {
+      if (!name.startsWith(this.settings.transactionCookiePrefix)) continue;
+      try {
+        live.push({ name, issuedAt: openTransaction(this.sealKey, this.binding(name), value, now).issuedAt });
+      } catch {
+        stale.push(name);
+      }
+    }
+    live.sort((a, b) => b.issuedAt - a.issuedAt);
+    return [...stale, ...live.slice(4).map((entry) => entry.name)];
   }
   private key(kind: string, id: string) {
     return this.settings.namespace + ':' + kind + ':' + createHash('sha256').update(id).digest('hex');
@@ -70,22 +155,28 @@ export class Identity {
     await this.config();
     this.reachableUntil = Date.now() + 5000;
   }
+  // Starts a sign-in without writing server state: the transaction is returned sealed, for the transaction cookie.
   async begin(returnTo = homePath) {
-    await this.ensureReachable();
-    const config = await this.config();
+    let config: oidc.Configuration;
+    try {
+      await this.ensureReachable();
+      config = await this.config();
+    } catch (error) {
+      throw new SignInError('provider_unavailable', error);
+    }
     const verifier = oidc.randomPKCECodeVerifier(),
       state = oidc.randomState(),
-      nonce = oidc.randomNonce(),
-      id = opaque();
-    await (
-      await this.store()
-    ).set(
-      this.key('transaction', id),
-      JSON.stringify({ verifier, state, nonce, returnTo: safeReturnTo(returnTo, this.settings.origin) }),
-      { EX: 300 },
-    );
+      nonce = oidc.randomNonce();
+    const name = this.transactionCookieName(state);
+    const cookie = sealTransaction(this.sealKey, this.binding(name), {
+      verifier,
+      state,
+      nonce,
+      returnTo: safeReturnTo(returnTo, this.settings.origin),
+    });
     return {
-      id,
+      name,
+      cookie,
       url: oidc.buildAuthorizationUrl(config, {
         redirect_uri: this.settings.origin + '/auth/callback',
         scope: this.settings.scope,
@@ -96,21 +187,54 @@ export class Identity {
       }).href,
     };
   }
-  async complete(id: string, url: URL) {
-    if (!validId(id) || url.origin !== this.settings.origin || url.pathname !== '/auth/callback')
-      throw new Error('Invalid callback');
-    const saved = await (await this.store()).getDel(this.key('transaction', id));
-    if (!saved) throw new Error('Expired transaction');
-    const transaction = JSON.parse(saved) as { verifier: string; state: string; nonce: string; returnTo?: string };
-    const tokens = await oidc.authorizationCodeGrant(await this.config(), url, {
-      pkceCodeVerifier: transaction.verifier,
-      expectedState: transaction.state,
-      expectedNonce: transaction.nonce,
-      idTokenExpected: true,
-    });
+  // Every refusal is a SignInError with a fixed reason. cookies maps the request's cookie names to values.
+  async complete(cookies: Record<string, string>, url: URL) {
+    if (url.origin !== this.settings.origin || url.pathname !== '/auth/callback')
+      throw new SignInError('invalid_callback');
+    if (url.searchParams.has('error'))
+      throw new SignInError('provider_error', undefined, url.searchParams.get('error'));
+    const state = url.searchParams.get('state') ?? '';
+    const name = this.transactionCookieName(state),
+      cookie = Object.hasOwn(cookies, name) ? cookies[name] : undefined;
+    // No cookie for this state: a sign-in for another state in progress means the state does not match.
+    if (!cookie)
+      throw new SignInError(
+        Object.entries(cookies).some(
+          ([other, value]) => other !== name && value && other.startsWith(this.settings.transactionCookiePrefix),
+        )
+          ? 'state_mismatch'
+          : 'missing_transaction',
+      );
+    let transaction;
+    try {
+      transaction = openTransaction(this.sealKey, this.binding(name), cookie);
+    } catch (error) {
+      throw new SignInError(error instanceof TransactionError ? error.reason : 'invalid_transaction');
+    }
+    // The cookie name already follows from the state; compare the sealed value too. The library checks it again below.
+    if (!same(state, transaction.state)) throw new SignInError('state_mismatch');
+    let config: oidc.Configuration;
+    try {
+      config = await this.config();
+    } catch (error) {
+      throw new SignInError('provider_unavailable', error);
+    }
+    let tokens: Awaited<ReturnType<typeof oidc.authorizationCodeGrant>>;
+    try {
+      tokens = await oidc.authorizationCodeGrant(config, url, {
+        pkceCodeVerifier: transaction.verifier,
+        expectedState: transaction.state,
+        expectedNonce: transaction.nonce,
+        idTokenExpected: true,
+      });
+    } catch (error) {
+      if (error instanceof oidc.AuthorizationResponseError) throw new SignInError('provider_error', error, error.error);
+      if (error instanceof oidc.ResponseBodyError) throw new SignInError('token_exchange_failed', error, error.error);
+      throw new SignInError('token_exchange_failed', error);
+    }
     const subject = tokens.claims()?.sub;
     if (!subject || !tokens.access_token || !tokens.expires_in || tokens.expires_in <= 0)
-      throw new Error('Provider token contract incomplete');
+      throw new SignInError('token_contract_incomplete');
     const session: Session = {
       accessToken: tokens.access_token,
       expires: Date.now() + tokens.expires_in * 1000,
@@ -119,8 +243,14 @@ export class Identity {
       ...(tokens.refresh_token ? { refreshToken: tokens.refresh_token } : {}),
     };
     const sessionId = opaque();
-    await (await this.store()).set(this.key('session', sessionId), JSON.stringify(session), { EX: this.settings.ttl });
-    return { sessionId, returnTo: safeReturnTo(transaction.returnTo, this.settings.origin) };
+    try {
+      await (
+        await this.store()
+      ).set(this.key('session', sessionId), JSON.stringify(session), { EX: this.settings.ttl });
+    } catch (error) {
+      throw new SignInError('session_store_unavailable', error);
+    }
+    return { sessionId, subject, returnTo: safeReturnTo(transaction.returnTo, this.settings.origin) };
   }
   // Cheap check used by the proxy before a private page starts streaming.
   async hasSession(id: string | undefined): Promise<boolean> {
@@ -203,8 +333,19 @@ export class Identity {
   async logout(id: string) {
     if (!validId(id)) return;
     const value = await (await this.store()).getDel(this.key('session', id));
+    if (value) await this.revoke(JSON.parse(value) as Session);
+  }
+  // Signing in again in the same browser replaces its previous session. The old record is deleted at once. Its provider
+  // tokens are revoked only when it belonged to another account: for the same account they share the provider's
+  // single sign-on session, and revoking them would end that session and break the new session's first refresh.
+  async replace(id: string, subject: string) {
+    if (!validId(id)) return;
+    const value = await (await this.store()).getDel(this.key('session', id));
     if (!value) return;
     const session = JSON.parse(value) as Session;
+    if (session.subject !== subject) await this.revoke(session);
+  }
+  private async revoke(session: Session) {
     try {
       const config = await this.config();
       if (config.serverMetadata().revocation_endpoint)

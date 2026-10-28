@@ -15,8 +15,9 @@ export declare function identitySettings(env?: NodeJS.ProcessEnv):
       insecure: boolean;
       clientId: string;
       clientSecret: string | undefined;
+      transactionSecret: string;
       sessionCookie: string;
-      transactionCookie: string;
+      transactionCookiePrefix: string;
     }
   | undefined;
 export declare function startServer(serverModule: string, environment?: NodeJS.ProcessEnv): Promise<void>;

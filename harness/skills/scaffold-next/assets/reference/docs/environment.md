@@ -11,7 +11,8 @@ Every variable the web app reads. `scripts/start.mjs` and `scripts/container-sta
 | `AUTH_CLIENT_ID` | with `oidc` | — | no | OIDC client id registered with the provider. |
 | `AUTH_CLIENT_SECRET` | with a confidential client | — | yes | OIDC client secret. Omit for a public PKCE client. |
 | `AUTH_SCOPE` | no | `openid` | no | Requested scopes; must include `openid`. Add what your API audience needs. |
-| `AUTH_REDIS_URL` | with `oidc` | — | yes | Server-side session store. `rediss:` required except on loopback. May contain a password. |
+| `AUTH_REDIS_URL` | with `oidc` | — | yes | Server-side session store (signed-in sessions only; starting a sign-in writes nothing to it). `rediss:` required except on loopback. May contain a password. |
+| `AUTH_TRANSACTION_SECRET` | with `oidc` | — | yes | Key material for the encrypted sign-in transaction cookie (AES-256-GCM, key derived with HKDF-SHA256). Unpadded base64url of at least 32 random bytes, for example from `node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))"`. Every replica needs the same value. Rotating it makes sign-ins in progress restart; signed-in sessions are unaffected. |
 | `AUTH_NAMESPACE` | no | `web` | no | Key prefix in the session store; unique per app and environment. |
 | `AUTH_SESSION_SECONDS` | no | `3600` | no | Absolute session lifetime (60–86400). Refresh never extends it. |
 | `AUTH_INSECURE_LOOPBACK` | no | unset | no | `true` allows plain `http:` origin, issuer and Redis only when all three are loopback. Local development only. |

@@ -19,6 +19,13 @@ const parseUrl = (variable, value) => {
   }
 };
 const loopback = (url) => ['127.0.0.1', 'localhost'].includes(url.hostname);
+// Seals sign-in transaction cookies (src/lib/transaction-cookie.mjs). Unpadded base64url of at least 32 bytes. A value
+// made of few distinct bytes (a repeated character, a short word repeated) is refused: it cannot hold 32 random bytes.
+const strongSecret = (value) => {
+  if (!/^[A-Za-z0-9_-]{43,512}$/.test(value)) return false;
+  const bytes = Buffer.from(value, 'base64url');
+  return bytes.length >= 32 && bytes.toString('base64url') === value && new Set(bytes).size >= 16;
+};
 
 export function validateRuntime(environment = process.env) {
   const base = parseUrl('API_BASE_URL', environment.API_BASE_URL);
@@ -74,6 +81,10 @@ export function identitySettings(env = process.env) {
     throw new ConfigurationError('AUTH_SESSION_SECONDS', 'must be an integer from 60 to 86400');
   const scope = env.AUTH_SCOPE ?? 'openid';
   if (!scope.split(' ').includes('openid')) throw new ConfigurationError('AUTH_SCOPE', 'must include openid');
+  const transactionSecret = env.AUTH_TRANSACTION_SECRET;
+  if (!transactionSecret) throw new ConfigurationError('AUTH_TRANSACTION_SECRET', 'missing');
+  if (!strongSecret(transactionSecret))
+    throw new ConfigurationError('AUTH_TRANSACTION_SECRET', 'must be base64url encoding at least 32 random bytes');
   return {
     origin: origin.origin,
     issuer,
@@ -84,8 +95,10 @@ export function identitySettings(env = process.env) {
     insecure,
     clientId: env.AUTH_CLIENT_ID,
     clientSecret: env.AUTH_CLIENT_SECRET,
+    transactionSecret,
     sessionCookie: insecure ? 'app_session' : '__Host-app_session',
-    transactionCookie: insecure ? 'oidc_transaction' : '__Host-oidc_transaction',
+    // One cookie per sign-in in progress, named after its state (see src/lib/identity.ts), so two tabs never collide.
+    transactionCookiePrefix: insecure ? 'oidc_tx_' : '__Host-oidc_tx_',
   };
 }
 

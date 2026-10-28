@@ -21,6 +21,11 @@ secrets_init() {
     printf '%s=%s\n' "$name" "$value" >> "$WORK/.secrets"
     export "$name=$value"
   done
+  # The web app's sign-in transaction key: base64url of 32 random bytes, the same for every web process in one job.
+  value="$(openssl rand -base64 32 | tr '+/' '-_' | tr -d '=\n')"
+  echo "::add-mask::$value"
+  printf '%s=%s\n' AUTH_TRANSACTION_SECRET "$value" >> "$WORK/.secrets"
+  export AUTH_TRANSACTION_SECRET="$value"
   umask 022
 }
 
@@ -36,7 +41,7 @@ test_env() {
   export TEST_REDIS_URL=redis://127.0.0.1:6379
   export AUTH_ISSUER=https://identity.example.invalid/ AUTH_AUDIENCE=reference AUTH_JWKS_URL=https://identity.example.invalid/jwks
   export API_BASE_URL=https://api.example.invalid
-  export EV_ENV_NAMES="NODE_ENV DATABASE_URL TEST_REDIS_URL AUTH_ISSUER AUTH_AUDIENCE AUTH_JWKS_URL API_BASE_URL"
+  export EV_ENV_NAMES="NODE_ENV DATABASE_URL TEST_REDIS_URL AUTH_ISSUER AUTH_AUDIENCE AUTH_JWKS_URL API_BASE_URL AUTH_TRANSACTION_SECRET"
 }
 
 playwright_install() { ev_run "_setup-$JOB" playwright -- pnpm --filter @repo/web exec playwright install --with-deps chromium; }

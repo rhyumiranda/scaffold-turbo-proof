@@ -73,7 +73,7 @@ web_start() { # NAME PORT API_PORT NAMESPACE [VAR=VAL...]
   svc_stop "$name"
   svc_start "$name" "$WS/apps/web" NODE_ENV=production PORT="$port" HOSTNAME=127.0.0.1 API_BASE_URL="http://127.0.0.1:$apip" AUTH_MODE=oidc \
     AUTH_APP_ORIGIN="http://localhost:$port" AUTH_ISSUER="$KC_URL/realms/acme" AUTH_CLIENT_ID=acme-web AUTH_CLIENT_SECRET="$KC_ACME_WEB_SECRET" \
-    AUTH_REDIS_URL=redis://127.0.0.1:6379 AUTH_NAMESPACE="$ns" $( [ -z "${WEB_HTTPS:-}" ] && echo AUTH_INSECURE_LOOPBACK=true ) "$@" node scripts/start.mjs
+    AUTH_REDIS_URL=redis://127.0.0.1:6379 AUTH_NAMESPACE="$ns" AUTH_TRANSACTION_SECRET="$AUTH_TRANSACTION_SECRET" $( [ -z "${WEB_HTTPS:-}" ] && echo AUTH_INSECURE_LOOPBACK=true ) "$@" node scripts/start.mjs
   wait_http "http://127.0.0.1:$port/healthz" 90 || { echo "web $name not up"; tail -20 "$SEC_LOGS/$name.log"; return 1; }
 }
 export -f svc_start svc_stop api_start web_start wait_http

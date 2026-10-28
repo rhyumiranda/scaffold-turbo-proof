@@ -111,6 +111,9 @@ function plainArguments(root: unknown) {
 
 // Private pages stream as soon as rendering starts, so an expired or deleted session must be caught before that:
 // redirect to sign-in (returning here afterwards) instead of rendering a 200 "sign in" page.
+// The session cookie is never cleared here. Sessions live on the server, so an unknown cookie grants nothing, and a
+// request still in flight with an old cookie (a link prefetch racing a new sign-in) would otherwise delete the cookie
+// the sign-in just set. Only sign-out clears it, and the next sign-in replaces it.
 async function guardSession(request: NextRequest): Promise<NextResponse | undefined> {
   const identity = identityClient();
   if (!identity || !privatePaths.some((path) => path.test(request.nextUrl.pathname))) return undefined;
@@ -122,18 +125,18 @@ async function guardSession(request: NextRequest): Promise<NextResponse | undefi
     return undefined; // Session store unavailable: let the page show its outage state.
   }
   if (valid) return undefined;
+  // Only a document navigation is sent to sign-in. Prefetches and client-router (RSC) fetches get a non-RSC 204 with no
+  // side effect: the router drops a prefetch, and turns a navigation into a full page load, which then gets the
+  // redirect below. Next.js strips its RSC headers before this proxy runs, so the browser's Fetch Metadata is used: a
+  // router fetch is Sec-Fetch-Mode cors, a speculative prefetch carries Sec-Purpose prefetch. Clients that send no
+  // Fetch Metadata (curl, monitors) keep getting the redirect.
+  const mode = request.headers.get('sec-fetch-mode');
+  const purpose = request.headers.get('sec-purpose') ?? request.headers.get('purpose') ?? '';
+  if ((mode !== null && mode !== 'navigate') || /prefetch|prerender/i.test(purpose))
+    return new NextResponse(null, { status: 204, headers: { 'cache-control': 'no-store' } });
   const login = new URL('/auth/login', identity.settings.origin);
   login.searchParams.set('returnTo', request.nextUrl.pathname + request.nextUrl.search);
   const response = NextResponse.redirect(login, 307);
-  // A __Host- cookie is only replaced by one with the same attributes; a bare clearing cookie is ignored by browsers.
-  if (cookie)
-    response.cookies.set(identity.settings.sessionCookie, '', {
-      path: '/',
-      maxAge: 0,
-      httpOnly: true,
-      secure: !identity.settings.insecure,
-      sameSite: 'lax',
-    });
   response.headers.set('cache-control', 'no-store');
   return response;
 }

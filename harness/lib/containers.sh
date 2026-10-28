@@ -150,6 +150,7 @@ ct_envfiles() {
     echo "AUTH_CLIENT_SECRET=$KC_ACME_WEB_SECRET"
     echo "AUTH_REDIS_URL=rediss://acc-redis:6380"
     echo "AUTH_NAMESPACE=acc-web"
+    echo "AUTH_TRANSACTION_SECRET=$AUTH_TRANSACTION_SECRET"
     echo "NODE_EXTRA_CA_CERTS=/etc/acc-ca/ca.crt"
   } > "$CT/env/web.env"
   umask 022

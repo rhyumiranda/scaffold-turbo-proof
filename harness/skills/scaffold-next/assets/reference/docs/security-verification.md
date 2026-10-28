@@ -8,6 +8,7 @@ This is a test/evidence plan, not an ASVS certification. Scope: private Projects
 | 8.1.1, 8.2.2, 8.3.1 — documented object authorization at trusted boundary | Owner predicates, cross-user HTTP/browser cases, stale-version tests | Actual provider claims/roles and changed permissions |
 | 14.2.1, 14.2.2 — credential transport and private cache handling | Bearer headers, server-only transport, no-store reads, redacted diagnostics | TLS/proxy/CDN configuration and cache isolation at the target |
 | 14.3.1, 14.3.3 — client session cleanup and no sensitive persistent browser storage | Browser session-switch test; drafts stay in document memory only | Real logout/expiry/account switching must clear DOM/router state via a full-document transition; verify Back after logout |
+| 7.2.1, 7.2.4, 10.4.1 — sign-in state and session creation (OIDC profile) | `test:identity` and `test:identity:browser`: no server state on sign-in start, AES-256-GCM transaction cookie rejected when tampered, foreign, expired or missing, state/PKCE/nonce checks, replayed callback refused, two-tab sign-in, new session id per sign-in, no logged secrets | The chosen provider's code single-use and consent behaviour; `AUTH_TRANSACTION_SECRET` custody and rotation at the target |
 | 14.1.1, 14.1.2 — classification/protection policy | No production data in tests; structured log allowlist tests | Name data classes, owners, retention, encryption and telemetry permissions before release |
 
 ## Required checks and update policy

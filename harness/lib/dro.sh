@@ -157,7 +157,8 @@ web_start() {
   dro_launch "_runtime-$JOB" "$label" "$WS/apps/web" \
     "PORT=$WEB_PORT" HOSTNAME=127.0.0.1 "API_BASE_URL=$base" AUTH_MODE=oidc "AUTH_APP_ORIGIN=http://localhost:$WEB_PORT" \
     "AUTH_ISSUER=$KC_ISSUER" AUTH_CLIENT_ID=acme-web "AUTH_CLIENT_SECRET=$KC_ACME_WEB_SECRET" \
-    AUTH_REDIS_URL=redis://127.0.0.1:6379 "AUTH_NAMESPACE=${WEB_NS:-web}" AUTH_INSECURE_LOOPBACK=true "$@" -- node scripts/start.mjs
+    AUTH_REDIS_URL=redis://127.0.0.1:6379 "AUTH_NAMESPACE=${WEB_NS:-web}" AUTH_INSECURE_LOOPBACK=true \
+    "AUTH_TRANSACTION_SECRET=$AUTH_TRANSACTION_SECRET" "$@" -- node scripts/start.mjs
   WEB_PID=$DRO_PID
   dro_wait_http "http://127.0.0.1:$WEB_PORT/healthz" 60
 }

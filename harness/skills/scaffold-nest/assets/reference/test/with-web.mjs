@@ -3,7 +3,7 @@ import './test-database.mjs';
 import { createServer, request as proxyRequest } from 'node:http';
 import { spawn } from 'node:child_process';
 import { resolve, join } from 'node:path';
-import { randomUUID } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { generateKeyPair, exportJWK, SignJWT } from 'jose';
 import { createApp } from '../dist/app.js';
 import { pathToFileURL } from 'node:url';
@@ -129,6 +129,8 @@ try {
       AUTH_NAMESPACE: 'browser-' + randomUUID(),
       AUTH_REDIS_URL: process.env.TEST_REDIS_URL,
       AUTH_INSECURE_LOOPBACK: 'true',
+      // Generated per run and shared by both replicas, as every replica of one deployment must share it.
+      AUTH_TRANSACTION_SECRET: randomBytes(32).toString('base64url'),
     });
   const replicas = process.env.TEST_REPLICAS ?? '1';
   if (!['1', '2'].includes(replicas)) throw new Error('TEST_REPLICAS must be 1 or 2');
@@ -138,11 +140,12 @@ try {
   );
   if (replicas === '2') {
     proxy = createServer((request, response) => {
-      // Deliberately render on replica A and mutate on replica B, using one public origin.
+      // Deliberately render on replica A and mutate on replica B, using one public origin. Sign-in starts on A and its
+      // callback lands on B, so the sealed transaction must open on another instance.
       const upstream = proxyRequest(
         {
           host: '127.0.0.1',
-          port: request.method === 'POST' ? ports[1] : ports[0],
+          port: request.method === 'POST' || request.url.startsWith('/auth/callback') ? ports[1] : ports[0],
           path: request.url,
           method: request.method,
           headers: request.headers,
