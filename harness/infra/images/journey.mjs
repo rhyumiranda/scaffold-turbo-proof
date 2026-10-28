@@ -17,7 +17,8 @@ const page = await context.newPage();
 const statuses = [];
 page.on('response', (res) => statuses.push({ s: res.status(), m: res.request().method(), u: res.url().replace(/(code|state|session_state|nonce|code_challenge|iss)=[^&]+/g, '$1=<r>') }));
 try {
-  await page.goto(BASE + '/projects');
+  // Chromium can report ERR_NETWORK_CHANGED when Docker creates or removes a veth interface; retry the first load.
+  for (let a = 0; a < 4; a++) { try { await page.goto(BASE + '/projects'); break; } catch (e) { if (a === 3 || !/ERR_NETWORK_CHANGED/.test(String(e))) throw e; await new Promise((r) => setTimeout(r, 2000)); } }
   // Private pages redirect straight to Keycloak; older builds showed a "Sign in" link first.
   const signIn = page.getByRole('link', { name: 'Sign in', exact: true });
   await Promise.race([page.waitForURL(/\/protocol\/openid-connect\/auth/, { timeout: 30000 }), signIn.waitFor({ timeout: 30000 })]).catch(() => {});
