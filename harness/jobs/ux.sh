@@ -14,7 +14,7 @@ fail_all() { local ac; for ac in $ALL; do want "$ac" && verdict "$ac" FAIL "$1";
 # ---------- Setup: install, production build, services, Chromium ----------
 ws_install || fail_all "setup failed: pnpm install --frozen-lockfile exited non-zero (see _setup-ux/install)"
 ws_build || fail_all "setup failed: pnpm build exited non-zero (see _setup-ux/build)"
-infra_up postgres redis keycloak || fail_all "setup failed: Postgres, Redis or Keycloak did not become healthy"
+for attempt in 1 2 3 4; do infra_up postgres redis keycloak && break; echo "infra attempt $attempt failed"; sleep 20; false; done || fail_all "setup failed: Postgres, Redis or Keycloak did not become healthy"
 playwright_install || fail_all "setup failed: Playwright Chromium install failed"
 ux_env
 
