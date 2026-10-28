@@ -125,9 +125,14 @@ async function guardSession(request: NextRequest): Promise<NextResponse | undefi
     return undefined; // Session store unavailable: let the page show its outage state.
   }
   if (valid) return undefined;
-  // Prefetches and client-router (RSC) fetches never start a sign-in. A non-RSC 204 has no side effect: the router drops
-  // a prefetch, and turns a navigation into a full page load, which then gets the redirect below.
-  if (request.headers.has('rsc') || request.headers.has('next-router-prefetch'))
+  // Only a document navigation is sent to sign-in. Prefetches and client-router (RSC) fetches get a non-RSC 204 with no
+  // side effect: the router drops a prefetch, and turns a navigation into a full page load, which then gets the
+  // redirect below. Next.js strips its RSC headers before this proxy runs, so the browser's Fetch Metadata is used: a
+  // router fetch is Sec-Fetch-Mode cors, a speculative prefetch carries Sec-Purpose prefetch. Clients that send no
+  // Fetch Metadata (curl, monitors) keep getting the redirect.
+  const mode = request.headers.get('sec-fetch-mode');
+  const purpose = request.headers.get('sec-purpose') ?? request.headers.get('purpose') ?? '';
+  if ((mode !== null && mode !== 'navigate') || /prefetch|prerender/i.test(purpose))
     return new NextResponse(null, { status: 204, headers: { 'cache-control': 'no-store' } });
   const login = new URL('/auth/login', identity.settings.origin);
   login.searchParams.set('returnTo', request.nextUrl.pathname + request.nextUrl.search);

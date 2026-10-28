@@ -149,12 +149,14 @@ test('prefetches and client-router requests never start a sign-in or touch cooki
   await redis.connect();
   try {
     const before = await redis.keys(process.env.AUTH_NAMESPACE + ':*');
+    // What browsers send: router prefetch and navigation fetches, a speculative document prefetch, a script fetch.
+    const fetchMetadata = { 'sec-fetch-mode': 'cors', 'sec-fetch-dest': 'empty', 'sec-fetch-site': 'same-origin' };
     const variants: Record<string, string>[] = [
-      { rsc: '1', 'next-router-prefetch': '1' },
-      { rsc: '1', 'next-router-state-tree': '%5B%22%22%5D' },
-      { 'sec-purpose': 'prefetch' },
-      { 'sec-fetch-mode': 'cors', 'sec-fetch-dest': 'empty' },
-      { 'sec-fetch-mode': 'no-cors' },
+      { ...fetchMetadata, rsc: '1', 'next-router-prefetch': '1' },
+      { ...fetchMetadata, rsc: '1', 'next-router-state-tree': '%5B%22%22%5D' },
+      { 'sec-purpose': 'prefetch', 'sec-fetch-mode': 'navigate', 'sec-fetch-dest': 'document' },
+      fetchMetadata,
+      { 'sec-fetch-mode': 'no-cors', 'sec-fetch-dest': 'image' },
     ];
     for (const headers of variants) {
       for (const path of ['/auth/login?returnTo=/projects', '/projects', '/projects?_rsc=abc']) {
@@ -166,7 +168,7 @@ test('prefetches and client-router requests never start a sign-in or touch cooki
           expect(reply.cookies, path).toEqual([]);
           reply = await get(reply.location, sent);
         }
-        if (path.startsWith('/auth/login') || 'rsc' in headers) expect(reply.status, path).toBe(204);
+        expect(reply.status, path).toBe(204);
         expect(reply.cookies, path).toEqual([]);
       }
     }
