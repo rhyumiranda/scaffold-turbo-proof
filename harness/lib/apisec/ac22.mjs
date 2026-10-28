@@ -13,7 +13,7 @@ const dbUrl = (pw, db = env.AC22_DB) => `postgresql://postgres:${pw}@127.0.0.1:5
 const without = (o, k) => { const c = { ...o }; delete c[k]; return c; };
 const API_PORT = '4122', WEB_PORT = '3122';
 const api = { ...base, NODE_ENV: 'test', PORT: API_PORT, DATABASE_URL: dbUrl(env.PG_PASSWORD), AUTH_ISSUER: KC + '/realms/acme', AUTH_AUDIENCE: 'acme-api', AUTH_JWKS_URL: KC + '/realms/acme/protocol/openid-connect/certs', LIMITER_MODE: 'memory', LIMITER_REDIS_URL: 'rediss://:SENTINEL-AC22-2@cache.example.invalid:6379' };
-const web = { ...base, NODE_ENV: 'production', PORT: WEB_PORT, HOSTNAME: '127.0.0.1', API_BASE_URL: 'http://127.0.0.1:4103', AUTH_MODE: 'oidc', AUTH_APP_ORIGIN: `http://localhost:${WEB_PORT}`, AUTH_ISSUER: KC + '/realms/acme', AUTH_INSECURE_LOOPBACK: 'true', AUTH_CLIENT_ID: 'acme-web', AUTH_CLIENT_SECRET: 'SENTINEL-AC22-3', AUTH_REDIS_URL: 'redis://127.0.0.1:6379', AUTH_NAMESPACE: 'ac22' };
+const web = { ...base, NODE_ENV: 'production', PORT: WEB_PORT, HOSTNAME: '127.0.0.1', API_BASE_URL: 'http://127.0.0.1:4103', AUTH_MODE: 'oidc', AUTH_APP_ORIGIN: `http://localhost:${WEB_PORT}`, AUTH_ISSUER: KC + '/realms/acme', AUTH_INSECURE_LOOPBACK: 'true', AUTH_CLIENT_ID: 'acme-web', AUTH_CLIENT_SECRET: 'SENTINEL-AC22-3', AUTH_REDIS_URL: 'redis://127.0.0.1:6379', AUTH_NAMESPACE: 'ac22', AUTH_TRANSACTION_SECRET: env.AUTH_TRANSACTION_SECRET };
 const webHttps = { ...without(web, 'AUTH_INSECURE_LOOPBACK'), AUTH_APP_ORIGIN: 'https://app.acme.test:8443' };
 // [name, kind, env, regex that must appear in the output (the offending key), expectListen]
 const cases = [
@@ -32,6 +32,8 @@ const cases = [
   ['web-3b-AUTH_REDIS_URL-remote-with-sentinel-password', 'web', { ...web, AUTH_REDIS_URL: 'redis://:SENTINEL-AC22-4@remote.example:6379' }, /AUTH_REDIS_URL/],
   ['web-3c-AUTH_REDIS_URL-remote-https-origin-no-flag', 'web', { ...webHttps, AUTH_ISSUER: 'https://id.acme.test:8443/realms/acme', AUTH_REDIS_URL: 'redis://:SENTINEL-AC22-6@remote.example:6379' }, /AUTH_REDIS_URL/],
   ['web-4-unset-API_BASE_URL', 'web', without(web, 'API_BASE_URL'), /API_BASE_URL/],
+  ['web-5-unset-AUTH_TRANSACTION_SECRET', 'web', without(web, 'AUTH_TRANSACTION_SECRET'), /AUTH_TRANSACTION_SECRET/],
+  ['web-5b-AUTH_TRANSACTION_SECRET-sentinel-too-weak', 'web', { ...web, AUTH_TRANSACTION_SECRET: 'SENTINEL-AC22-7' }, /AUTH_TRANSACTION_SECRET/],
 ];
 
 const probe = (port) => new Promise((res) => { const s = net.connect(Number(port), '127.0.0.1'); s.once('connect', () => { s.destroy(); res(true); }); s.once('error', () => res(false)); });

@@ -50,7 +50,8 @@ export async function testIssuer(audience = 'reference-test') {
           redirect: callback.href,
           nonce: url.searchParams.get('nonce'),
           client: url.searchParams.get('client_id'),
-          subject: 'oidc-alice',
+          // Test-only account choice; a real provider decides the subject by who signs in.
+          subject: url.searchParams.get('login_hint') ?? 'oidc-alice',
         });
         callback.searchParams.set('code', code);
         callback.searchParams.set('state', url.searchParams.get('state'));

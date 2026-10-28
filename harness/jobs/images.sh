@@ -228,13 +228,13 @@ unset EV_ENV_NAMES
 missing_all() {
   ct_missing acme-api-migrate "$CT/env/migrate.env" DATABASE_URL
   for v in DATABASE_URL AUTH_ISSUER AUTH_AUDIENCE AUTH_JWKS_URL; do ct_missing acme-api "$CT/env/api.env" "$v"; done
-  for v in API_BASE_URL AUTH_APP_ORIGIN AUTH_ISSUER AUTH_CLIENT_ID AUTH_REDIS_URL; do ct_missing acme-web "$CT/env/web.env" "$v"; done
+  for v in API_BASE_URL AUTH_APP_ORIGIN AUTH_ISSUER AUTH_CLIENT_ID AUTH_REDIS_URL AUTH_TRANSACTION_SECRET; do ct_missing acme-web "$CT/env/web.env" "$v"; done
 }
 ev_run AC-81 missing-config -- missing_all
 printf 'image\tremoved variable\tstate\texit\tseconds\tlog names variable\n' | cat - "$EV/AC-81/missing-config.stdout" > "$EV/AC-81/missing-config.tsv"
 nmiss=$(tail -n +2 "$EV/AC-81/missing-config.tsv" | grep -c .)
 badmiss=$(tail -n +2 "$EV/AC-81/missing-config.tsv" | awk -F'\t' '$3!="exited" || $4==0 || $5=="running" || $5+0>=10 || $6!="yes"' | tee "$EV/AC-81/missing-config-bad.tsv" | grep -c .)
-[ "$nmiss" = 10 ] && [ "$badmiss" = 0 ] || { ok81=0; why81="$why81 missing-config cases=$nmiss bad=$badmiss;"; }
+[ "$nmiss" = 11 ] && [ "$badmiss" = 0 ] || { ok81=0; why81="$why81 missing-config cases=$nmiss bad=$badmiss;"; }
 # The repo's own container checks (they build the image themselves; layers are cached by now).
 ( test_env
   ev_run AC-81 test-container-api -- pnpm --filter @repo/api test:container ) || { ok81=0; why81="$why81 api test:container;"; }

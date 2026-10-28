@@ -14,5 +14,5 @@
 ## Identity integration
 
 - Default `AUTH_MODE=external-cookie`: the app reads an API-issued bearer token from the HttpOnly `api_session` cookie and issues no cookie itself. Use it when another system owns login.
-- `AUTH_MODE=oidc`: `src/lib/identity.ts` and `src/app/auth/[operation]/route.ts` implement login, callback, refresh and logout with PKCE, single-use transactions and Redis sessions. See `docs/production-profiles.md`.
+- `AUTH_MODE=oidc`: `src/lib/identity.ts` and `src/app/auth/[operation]/route.ts` implement login, callback, refresh and logout with PKCE, encrypted per-sign-in transaction cookies (no server state before sign-in; `AUTH_TRANSACTION_SECRET`) and Redis sessions. Every refused callback logs `identity.callback.rejected` with a fixed reason; keep secrets, codes and URLs out of those lines. See `docs/production-profiles.md`.
 - Either way, choose the provider, register the callback, and verify consent, refresh, revocation and account switching against that provider before calling the app complete. Local OIDC tests use a test issuer, not a real provider.

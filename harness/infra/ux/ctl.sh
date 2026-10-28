@@ -43,6 +43,7 @@ start_web() { # name port namespace [session-seconds]
     export AUTH_MODE=oidc AUTH_APP_ORIGIN="http://localhost:$2" AUTH_ISSUER=http://localhost:8080/realms/acme
     export AUTH_CLIENT_ID=acme-web AUTH_CLIENT_SECRET="$KC_ACME_WEB_SECRET"
     export AUTH_REDIS_URL=redis://127.0.0.1:6379 AUTH_NAMESPACE="$3" AUTH_INSECURE_LOOPBACK=true
+    export AUTH_TRANSACTION_SECRET  # from secrets_init; shared by every web process of the job
     if [ -n "${4:-}" ]; then export AUTH_SESSION_SECONDS="$4"; fi
     nohup node scripts/start.mjs >> "$UXR/$1.log" 2>&1 < /dev/null &
     echo $! > "$UXR/$1.pid" )

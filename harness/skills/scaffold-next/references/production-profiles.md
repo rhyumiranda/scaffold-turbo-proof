@@ -2,7 +2,7 @@
 
 Read the generated [profile guide](../assets/reference/docs/production-profiles.md) before selecting these capabilities. It names exact code, environment settings, commands and limitations. Copy it with the reference; do not replace its implementations with fresh prose-derived substitutes.
 
-The default external-cookie seam remains available for an existing API/provider. AUTH_MODE=oidc selects openid-client with server-side Redis sessions, one-time PKCE/state/nonce transactions, bounded rotating refresh and application logout. No vendor or Redis service is selected/provisioned automatically. The API still owns business data and independently validates access tokens.
+The default external-cookie seam remains available for an existing API/provider. AUTH_MODE=oidc selects openid-client with server-side Redis sessions, stateless PKCE/state/nonce transactions in AES-256-GCM cookies (AUTH_TRANSACTION_SECRET), bounded rotating refresh and application logout. No vendor or Redis service is selected/provisioned automatically. The API still owns business data and independently validates access tokens.
 
 ## Phase additions
 

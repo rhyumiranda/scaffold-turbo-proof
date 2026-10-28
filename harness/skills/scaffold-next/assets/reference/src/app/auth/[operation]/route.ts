@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { identityClient } from '@/lib/session.server';
+import { SignInError, signInRecord } from '@/lib/identity';
+import { TRANSACTION_SECONDS } from '@/lib/transaction-cookie.mjs';
 export const runtime = 'nodejs';
 function fail(status: number) {
   return NextResponse.json(
@@ -7,6 +9,28 @@ function fail(status: number) {
     { status, headers: { 'cache-control': 'no-store' } },
   );
 }
+// One structured line per refused or unavailable sign-in. signInRecord keeps only fixed codes, never request values.
+function logSignIn(event: Parameters<typeof signInRecord>[0], error: unknown, request: NextRequest) {
+  console.warn(JSON.stringify(signInRecord(event, error, request.headers.get('x-request-id'))));
+}
+// Only a top-level browser navigation starts a sign-in. Link prefetches, client-router (RSC) fetches and scripted
+// requests must not create a transaction or set a cookie: run concurrently with a real sign-in, they would leave
+// cookies that no callback ever uses. A non-RSC 204 makes the client router fall back to a full page navigation.
+function startsSignIn(request: NextRequest) {
+  const headers = request.headers;
+  if (headers.has('rsc') || headers.has('next-router-prefetch') || headers.has('next-router-state-tree')) return false;
+  if (/prefetch|prerender/i.test(headers.get('sec-purpose') ?? headers.get('purpose') ?? '')) return false;
+  const mode = headers.get('sec-fetch-mode');
+  return mode === null || mode === 'navigate';
+}
+const noEffect = () => new NextResponse(null, { status: 204, headers: { 'cache-control': 'no-store' } });
+const transactionCookies = (request: NextRequest, prefix: string) =>
+  Object.fromEntries(
+    request.cookies
+      .getAll()
+      .filter((cookie) => cookie.name.startsWith(prefix))
+      .map((cookie) => [cookie.name, cookie.value]),
+  );
 // Browser navigations get an HTML recovery page, never raw JSON or a stack trace.
 function problemPage(origin: string, reason: 'unavailable' | 'rejected') {
   const response = NextResponse.redirect(new URL('/sign-in-problem?reason=' + reason, origin), 303);
@@ -20,31 +44,42 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const settings = identity.settings;
   const options = { httpOnly: true, secure: !settings.insecure, sameSite: 'lax' as const, path: '/' };
   if (operation === 'login') {
+    if (!startsSignIn(request)) return noEffect();
     try {
       const start = await identity.begin(request.nextUrl.searchParams.get('returnTo') ?? undefined);
       const response = NextResponse.redirect(start.url, 303);
-      response.cookies.set(settings.transactionCookie, start.id, { ...options, maxAge: 300 });
+      for (const name of identity.staleTransactions(transactionCookies(request, settings.transactionCookiePrefix)))
+        response.cookies.set(name, '', { ...options, maxAge: 0 });
+      response.cookies.set(start.name, start.cookie, { ...options, maxAge: TRANSACTION_SECONDS });
       response.headers.set('cache-control', 'no-store');
       return response;
-    } catch {
+    } catch (error) {
+      logSignIn('identity.login.unavailable', error, request);
       return problemPage(settings.origin, 'unavailable');
     }
   }
   if (operation !== 'callback') return fail(405);
-  const transaction = request.cookies.get(settings.transactionCookie)?.value ?? '';
+  const transactions = transactionCookies(request, settings.transactionCookiePrefix);
   // Use configured public origin, never forwarded host headers as authority.
   const url = new URL('/auth/callback' + request.nextUrl.search, settings.origin);
   let response: NextResponse;
   try {
-    const { sessionId, returnTo } = await identity.complete(transaction, url);
+    const { sessionId, subject, returnTo } = await identity.complete(transactions, url);
     const old = request.cookies.get(settings.sessionCookie)?.value;
-    if (old) await identity.logout(old);
+    if (old)
+      await identity.replace(old, subject).catch((error: unknown) => {
+        throw new SignInError('session_store_unavailable', error);
+      });
     response = NextResponse.redirect(new URL(returnTo, settings.origin), 303);
     response.cookies.set(settings.sessionCookie, sessionId, { ...options, maxAge: settings.ttl });
-  } catch {
+  } catch (error) {
+    logSignIn('identity.callback.rejected', error, request);
     response = problemPage(settings.origin, 'rejected');
   }
-  response.cookies.set(settings.transactionCookie, '', { ...options, maxAge: 0 });
+  // Cleared whatever the outcome: a transaction cookie is good for one callback attempt in this browser. Only the cookie
+  // for this callback's state: another tab's sign-in keeps its own.
+  const name = identity.transactionCookieName(url.searchParams.get('state') ?? '');
+  if (Object.hasOwn(transactions, name)) response.cookies.set(name, '', { ...options, maxAge: 0 });
   response.headers.set('cache-control', 'no-store');
   return response;
 }

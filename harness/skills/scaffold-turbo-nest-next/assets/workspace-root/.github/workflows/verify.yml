@@ -36,6 +36,8 @@ jobs:
       AUTH_JWKS_URL: https://identity.example.invalid/jwks
       TEST_REDIS_URL: redis://127.0.0.1:6379
       API_BASE_URL: https://api.example.invalid
+      # Synthetic CI-only value (base64url of a readable phrase); never use it outside this test job.
+      AUTH_TRANSACTION_SECRET: Y2ktb25seS1zeW50aGV0aWMtdHJhbnNhY3Rpb24tc2VjcmV0LW5vdC1mb3ItcHJvZA # gitleaks:allow
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -68,6 +70,10 @@ jobs:
       - run: pnpm test:runtime
       # Companion gates kept from scaffold-nest and scaffold-next. Each fails closed; none skips to green.
       - run: pnpm --filter @repo/web test:identity
+      # OIDC browser profile against the test issuer: one instance, then two replicas (sign-in starts on one and the
+      # callback lands on the other). Each run generates its own AUTH_TRANSACTION_SECRET.
+      - run: pnpm --filter @repo/web test:identity:browser
+      - run: pnpm --filter @repo/web test:replicas
       - run: pnpm --filter @repo/api test:profiles
       - run: pnpm --filter @repo/api test:telemetry
       - name: Disposable logical restore through migrations

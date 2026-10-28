@@ -6,6 +6,7 @@
 import { Asserts, env, OUT, rcli, sleep, hist } from './lib.mjs';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
+import http from 'node:http';
 const A = new Asserts('AC-43');
 const WEB = env.WEB, P = env.RPORT, NS = env.NS;
 mkdirSync(OUT + '/diag', { recursive: true });
@@ -21,7 +22,12 @@ function snap(label) {
   return { label, t, used_memory: Number(m.used_memory), dataset: Number(m.used_memory_dataset), overhead: Number(m.used_memory_overhead), clients: Number(m.mem_clients_normal), scripts: Number(m.used_memory_scripts), aof: Number(m.mem_aof_buffer), hashtable_overhead_est: undefined, frag: m.mem_fragmentation_ratio, allocated: m.allocator_allocated, active: m.allocator_active, resident: m.allocator_resident, dbsize: Number(safe('DBSIZE')) };
 }
 const N = 5000, C = 20;
-async function burst(h) { let next = 0; async function worker() { while (next < N) { next++; try { const r = await fetch(WEB + '/auth/login', { redirect: 'manual' }); await r.arrayBuffer(); h[r.status] = (h[r.status] || 0) + 1; } catch { h.err = (h.err || 0) + 1; } } } await Promise.all(Array.from({ length: C }, worker)); }
+// Each request is what a browser sends when it navigates to the sign-in start (fetch() would add Sec-Fetch-Mode: cors,
+// which the app rightly treats as not starting a sign-in). h counts statuses and 'started' counts responses that began
+// a sign-in: a redirect to the provider that sets a transaction cookie.
+const agent = new http.Agent({ keepAlive: true, maxSockets: C });
+const get = (url) => new Promise((resolve, reject) => { const r = http.get(url, { agent, headers: { 'sec-fetch-mode': 'navigate', 'sec-fetch-dest': 'document' } }, (res) => { res.resume(); res.on('end', () => resolve(res)); }); r.on('error', reject); });
+async function burst(h) { let next = 0; async function worker() { while (next < N) { next++; try { const r = await get(WEB + '/auth/login'); h[r.statusCode] = (h[r.statusCode] || 0) + 1; if (r.statusCode === 303 && /\/protocol\/openid-connect\/auth/.test(r.headers.location || '') && (r.headers['set-cookie'] || []).some((c) => /^(__Host-)?oidc_tx_[0-9a-f]{16}=[^;]/.test(c))) h.started = (h.started || 0) + 1; } catch { h.err = (h.err || 0) + 1; } } } await Promise.all(Array.from({ length: C }, worker)); }
 const series = [];
 const S = (label) => { const s = snap(label); series.push(s); A.note('series', series); return s; };
 
@@ -34,12 +40,14 @@ A.note('burst', { requests: N, concurrency: C, histogram: h, ms: Date.now() - t0
 const ks = keys();
 const afterBurst = S('2-after-burst');
 writeFileSync(OUT + '/mem-after-burst.txt', `used_memory ${afterBurst.used_memory}\nkeys ${ks.length}\n`);
-A.check('burst created server-side state (otherwise the test proves nothing)', ks.length > 0, { keys: ks.length, histogram: h });
+// The burst must really start sign-ins (otherwise the test proves nothing): every request is a 303 to the provider with
+// a transaction cookie. Server-side keys are counted, not required: a stateless start legitimately creates none.
+A.check('burst started 5,000 sign-ins (303 to the provider with a transaction cookie each)', h.started === N && h[303] === N, { keys: ks.length, histogram: h });
 const ttlOut = spawnSync('redis-cli', ['-p', P], { input: ks.map((k) => `TTL ${k}`).join('\n') + '\n', encoding: 'utf8', maxBuffer: 64 << 20 }).stdout.split('\n').filter(Boolean).map(Number);
 const noTtl = ttlOut.filter((t) => t === -1).length, over = ttlOut.filter((t) => t > 600).length, maxTtl = Math.max(0, ...ttlOut);
 writeFileSync(OUT + '/ttl-summary.txt', `keys ${ks.length}\nno TTL (-1): ${noTtl}\nTTL>600: ${over}\nmin/max TTL: ${Math.min(...ttlOut)}/${maxTtl}\nsample of 50 TTLs: ${ttlOut.slice(0, 50).join(' ')}\nprefixes: ${JSON.stringify(hist(ks, (k) => k.split(':').slice(0, 2).join(':').replace(/:[0-9a-f]{16,}$/, ':<id>')))}\n`);
 A.check('no key without a TTL', noTtl === 0, { noTtl });
-A.check('every key has TTL <= 600 s', over === 0 && maxTtl > 0, { maxTtl, over });
+A.check('every key has TTL <= 600 s', over === 0 && (ks.length === 0 || maxTtl > 0), { keys: ks.length, maxTtl, over });
 console.log('waiting for the TTL to elapse');
 await sleep((maxTtl + 10) * 1000);
 let left = keys().length;
