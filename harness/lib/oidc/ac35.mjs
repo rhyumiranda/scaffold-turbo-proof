@@ -1,12 +1,24 @@
 // AC-35: sign-out and expiry end access on the server. Web runs with AUTH_SESSION_SECONDS=60, Keycloak access token 60 s.
 import { readFileSync, writeFileSync } from 'node:fs';
+import http from 'node:http';
+import https from 'node:https';
 import { Asserts, env, OUT, chromium, kcLogin, sha, rcli, sql, sleep, decode } from './lib.mjs';
 const A = new Asserts('AC-35');
 const BASE = env.WEB, NS = env.NS, API = env.API;
 const scan = () => rcli(6379, '--scan', '--pattern', NS + ':*').split('\n').filter(Boolean);
 const rows = [];
+// The criterion replays with curl: a plain request with no Fetch Metadata (fetch() always adds Sec-Fetch-Mode: cors,
+// which the app treats as a script request rather than a page load).
+const curl = (url, { method, headers }) => new Promise((resolve, reject) => {
+  const u = new URL(url);
+  const q = (u.protocol === 'https:' ? https : http).request(u, { method, headers }, (res) => {
+    let b = ''; res.setEncoding('utf8'); res.on('data', (d) => (b += d));
+    res.on('end', () => resolve({ status: res.statusCode, headers: { get: (n) => res.headers[n.toLowerCase()] ?? null }, text: async () => b }));
+  });
+  q.on('error', reject); q.end();
+});
 async function raw(label, method, path, cookie, headers = {}) {
-  const r = await fetch(BASE + path, { method, redirect: 'manual', headers: { ...(cookie ? { cookie: 'app_session=' + cookie } : {}), ...headers } });
+  const r = await curl(BASE + path, { method, headers: { ...(cookie ? { cookie: 'app_session=' + cookie } : {}), ...headers } });
   const t = await r.text();
   const o = { label, status: r.status, location: r.headers.get('location'), h1: (t.match(/<h1>([^<]*)<\/h1>/) || [])[1], hasProjectLinks: /href="\/projects\/[0-9a-f-]{36}"/.test(t), actionResult: (t.match(/\{"status":"(?:error|success)"[^}]*\}/) || [null])[0], body: t.slice(0, 160) };
   rows.push(o); return o;

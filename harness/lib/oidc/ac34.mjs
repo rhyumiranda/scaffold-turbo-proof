@@ -26,7 +26,7 @@ try {
   A.check('re-login without sign-out issues a new id and removes the old session', id3.value !== id2.value && has(id3.value) && !has(id2.value));
   await ctx.addCookies([{ name: '__Host-app_session', value: PRESET, url: BASE + '/', secure: true, httpOnly: true, sameSite: 'Lax' }]);
   // The server must refuse the pre-set value outright: the request carrying it is sent to sign-in, never served.
-  const direct = await ctx.request.get(BASE + '/projects', { maxRedirects: 0 });
+  const direct = await ctx.request.get(BASE + '/projects', { maxRedirects: 0, ignoreHTTPSErrors: true });
   const refused = direct.status() === 307 && /\/auth\/login/.test(direct.headers().location || '');
   await page.goto(BASE + '/projects');
   // Sign-in then either stops at the provider's login page, or (the provider's single sign-on session is still live,
