@@ -16,7 +16,7 @@ All feature paths above live under `src/features/projects/` except routes. Share
 
 ## Cache and navigation policy
 
-Projects are private and fetched per request with `cache: no-store`; bearer tokens never enter module state or browser props. No shared server or client query cache is added. Create refreshes `/projects`; rename refreshes list and detail. Pagination is `/projects?page=N`, 25 records, pages 1–401 matching the example API offset bound. Links preserve normal refresh/history behavior. There are never more than 25 rendered rows, so this profile does not need virtualization. Changes to sorting/filtering require matching API semantics and URL tests.
+Projects are private and fetched per request with `cache: no-store`; bearer tokens never enter module state or browser props. No shared server or client query cache is added. Create refreshes `/projects`; rename refreshes list and detail. Pagination is `/projects?page=N`, 25 records, pages 1–401 matching the example API offset bound. Links preserve normal refresh/history behavior but disable automatic prefetch, avoiding 25 private detail requests during the list-page load. There are never more than 25 rendered rows, so this profile does not need virtualization. Changes to sorting/filtering require matching API semantics and URL tests.
 
 ## Security and runtime
 

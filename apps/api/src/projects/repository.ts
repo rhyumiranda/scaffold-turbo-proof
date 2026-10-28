@@ -4,6 +4,9 @@ import { Database } from '../platform/index.js';
 // the owner; other modules read projects through ProjectsService, never through this repository or the model.
 const columns = { id: true, name: true, version: true, createdAt: true } as const;
 export type ProjectRow = { id: string; name: string; version: number; createdAt: Date };
+function isNotFound(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2025';
+}
 @Injectable()
 export class ProjectsRepository {
   constructor(private readonly db: Database) {}
@@ -25,11 +28,15 @@ export class ProjectsRepository {
   }
   // Optimistic concurrency in one statement: the row changes only while it still has the expected version.
   async renameIfVersion(ownerId: string, id: string, name: string, version: number): Promise<ProjectRow | null> {
-    const rows = await this.db.client.project.updateManyAndReturn({
-      where: { id, ownerId, version },
-      data: { name, version: { increment: 1 } },
-      select: columns,
-    });
-    return rows[0] ?? null;
+    try {
+      return await this.db.client.project.update({
+        where: { id, ownerId, version },
+        data: { name, version: { increment: 1 } },
+        select: columns,
+      });
+    } catch (error) {
+      if (isNotFound(error)) return null;
+      throw error;
+    }
   }
 }

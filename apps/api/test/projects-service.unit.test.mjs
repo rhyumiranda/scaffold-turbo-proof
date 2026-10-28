@@ -14,11 +14,11 @@ function fakeDatabase(result = () => row) {
   const record = (operation) => async (args) => {
     calls.push({ operation, args });
     const value = result(operation, calls.length);
-    return operation === 'findMany' || operation === 'updateManyAndReturn' ? (value ? [value] : []) : value;
+    if (operation === 'findMany') return value ? [value] : [];
+    if (operation === 'update' && !value) throw Object.assign(new Error('Record not found'), { code: 'P2025' });
+    return value;
   };
-  const project = Object.fromEntries(
-    ['create', 'findMany', 'findFirst', 'updateManyAndReturn'].map((name) => [name, record(name)]),
-  );
+  const project = Object.fromEntries(['create', 'findMany', 'findFirst', 'update'].map((name) => [name, record(name)]));
   return { calls, db: { client: { project } } };
 }
 test('application operations scope identity and minimize output without HTTP', async () => {
@@ -55,7 +55,17 @@ test('rename distinguishes an owned version conflict from an inaccessible record
     );
     assert.deepEqual(
       calls.map((call) => call.operation),
-      ['updateManyAndReturn', 'findFirst'],
+      ['update', 'findFirst'],
     );
   }
+});
+
+test('rename rethrows database failures other than a missing conditional row', async () => {
+  const failure = Object.assign(new Error('connection failed'), { code: 'P1001' });
+  const { db } = fakeDatabase((operation) => {
+    if (operation === 'update') throw failure;
+    return row;
+  });
+  const service = new ProjectsService(new ProjectsRepository(db));
+  await assert.rejects(service.rename('alice', row.id, 'Changed', 1), (error) => error === failure);
 });
