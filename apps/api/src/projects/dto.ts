@@ -45,4 +45,5 @@ export class ProjectResponse {
   @ApiProperty() name!: string;
   @ApiProperty({ type: 'integer', minimum: 1 }) version!: number;
   @ApiProperty({ format: 'date-time' }) createdAt!: string;
+  @ApiProperty({ required: false }) description?: string;
 }
