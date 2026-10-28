@@ -272,7 +272,7 @@ mkdir -p "$EV/AC-18"
 infra_down
 ev_run AC-18 running-containers -- bash -c 'docker ps --format "{{.Names}} {{.Image}}"; echo "count=$(docker ps -q | wc -l)"'
 ev_run AC-18 forced-build-clean-env -- $TO env -i PATH="$PATH" HOME="$HOME" pnpm exec turbo run build --force; fb=$?
-ev_run AC-18 build-dry -- bash -c 'pnpm exec turbo run build --dry=json > "'"$WORK"'/tmp/build-dry.json" && cp "'"$WORK"'/tmp/build-dry.json "'"$EV"'/AC-18/build-dry.json" && jq ".tasks[] | {taskId, dependencies}" "'"$WORK"'/tmp/build-dry.json"'; dr=$?
+OUT="$WORK/tmp" ev_run AC-18 build-dry -- bash -c 'pnpm exec turbo run build --dry=json > "$OUT/build-dry.json" && jq ".tasks[] | {taskId, dependencies}" "$OUT/build-dry.json"'; dr=$?
 ev_run AC-18 turbo-tasks -- jq '.tasks' turbo.json
 ev_run AC-18 graph-check -- python3 -I "$HARNESS/infra/turbo/graph.py" turbo.json "$WORK/tmp/build-dry.json"; gc=$?
 if [ $fb = 0 ] && [ $dr = 0 ] && [ $gc = 0 ]; then

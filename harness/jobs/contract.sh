@@ -65,7 +65,7 @@ ev_run AC-27 client-copy -- cmp apps/api/openapi.json packages/api-client/contra
 ev_run AC-27 fresh-types -- pnpm --filter @repo/api-client exec openapi-typescript contract/openapi.json -o "$WORK/ac27-fresh.d.ts"; e5=$?
 ev_run AC-27 types-diff -- diff "$WORK/ac27-fresh.d.ts" packages/api-client/src/api.d.ts; e6=$?
 ev_run AC-27 paths -- jq -r '.paths | keys[]' apps/api/openapi.json
-paths_ok=0; jq -e '[.paths|keys[]|select(startswith("/health")|not)|select(startswith("/v1/")|not)]|length==0 and ([.paths|keys[]|select(startswith("/health"))]|length)>0 and ([.paths|keys[]|select(startswith("/v1/"))]|length)>0' "$WS/apps/api/openapi.json" >/dev/null 2>&1 && paths_ok=1
+paths_ok=0; jq -e '(([.paths|keys[]|select(startswith("/health")|not)|select(startswith("/v1/")|not)]|length)==0) and (([.paths|keys[]|select(startswith("/health"))]|length)>0) and (([.paths|keys[]|select(startswith("/v1/"))]|length)>0)' "$WS/apps/api/openapi.json" >/dev/null 2>&1 && paths_ok=1
 tracked_clean AC-27 status; e7=$?
 if [ $e1 = 0 ] && [ $e2 = 0 ] && [ $e3 = 0 ] && [ $e4 = 0 ] && [ $e5 = 0 ] && [ $e6 = 0 ] && [ $paths_ok = 1 ] && [ $e7 = 0 ]; then
   verdict AC-27 PASS "fresh export equals apps/api/openapi.json; client copy identical; fresh openapi-typescript output equals api.d.ts; contract:check exit 0; resources /v1, health unversioned"
@@ -113,7 +113,7 @@ ev_run _setup-contract rebuild-pristine -- pnpm build
 if [ $ok29 = 1 ]; then verdict AC-29 PASS "contract:check fails after regeneration for removed response property, optional->required, removed operation, narrowed maxLength; oasdiff reports each as breaking; additive optional response field passes both ($(tr '\n' ';' < "$EV/AC-29/summary.txt"))"; else verdict AC-29 FAIL "$why29"; fi
 
 # ---------- AC-30: fuzzing the running API ----------
-mkdir -p "$EV/AC-30/report"
+mkdir -p "$EV/AC-30/report"; chmod 777 "$EV/AC-30/report"
 infra_up postgres keycloak; i30=$?
 test_env
 EV_ENV_NAMES="NODE_ENV DATABASE_URL" ev_run AC-30 migrate -- pnpm --filter @repo/api migrate; m30=$?
