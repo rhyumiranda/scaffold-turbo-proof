@@ -11,7 +11,7 @@ PY
   echo "AC-41 shard $1 $2 - $3"
 }
 ac41_shard() {
-  local SH="$1" N="$SEC_LIB" A41="$EV/AC-41"; mkdir -p "$A41"
+  local SH="$1" N="$SEC_LIB" A41="$EV/AC-41"; mkdir -p "$A41"; cp "$SEC_LIB/replay/EXIT-POLICY.md" "$A41/EXIT-POLICY.md"
   provenance || exit 1
   secrets_init; sec_env; trap sec_cleanup EXIT
   if ! sec_prepare; then ac41_part "$SH" FAIL "setup failed (install/build/infra)"; return 0; fi
@@ -27,7 +27,8 @@ ac41_shard() {
   mkdir -p "$WORK/pz/run"; export PZ="$WORK/pz"
   export OUT="$A41/replay"; mkdir -p "$OUT"
   export EV_ENV_NAMES="CLONE OUT PZ ALICE_PASSWORD ACME_CLI_SECRET PG_PASSWORD"
-  cd_run() { local l="$1" d="$2"; shift 2; ev_run AC-41 "replay-$l" "$d" -- timeout 1500 "$@"; echo "$l $?" >> "$A41/replay-exits.txt"; }
+  cd_run() { local l="$1" d="$2"; shift 2; ev_run AC-41 "replay-$l" "$d" -- timeout 1500 "$@"; local c=$?; echo "$l $c" >> "$A41/replay-exits.txt"
+    ac_check AC-41 "replay $l ran to completion (exit 0; 124 = timeout; see EXIT-POLICY.md, no script is excepted)" "$([ $c = 0 ] && echo 1 || echo 0)" "exit $c"; }
   if [ "$SH" = core ]; then
     run_phase AC-41 core -- env OUT="$A41" API=http://127.0.0.1:4103 WEB=http://localhost:3103 OPENAPI="$WS/apps/api/openapi.json" node "$N/ac41core.mjs"
   fi
@@ -71,6 +72,6 @@ ac41_shard() {
   nz=$(awk '$2!=0' "$A41/replay-exits.txt" 2>/dev/null | tr '\n' ' ')
   local f="$A41/assert.json" total failed
   total=$(jq '.checks|length' "$f"); failed=$(jq '[.checks[]|select(.ok|not)]|length' "$f")
-  if [ "$failed" = 0 ] && [ "$total" -gt 0 ]; then ac41_part "$SH" PASS "$total/$total checks passed; zero 5xx in API/web logs; replay nonzero exits (informational): ${nz:-none}"
-  else ac41_part "$SH" FAIL "$failed/$total failed: $(jq -r '[.checks[]|select(.ok|not)|.label]|join("; ")' "$f" | cut -c1-500); replay nonzero exits: ${nz:-none}"; fi
+  if [ "$failed" = 0 ] && [ "$total" -gt 0 ]; then ac41_part "$SH" PASS "$total/$total checks passed; zero 5xx in API/web logs; every replay script exited 0 (EXIT-POLICY.md: no exceptions)"
+  else ac41_part "$SH" FAIL "$failed/$total failed: $(jq -r '[.checks[]|select(.ok|not)|.label]|join("; ")' "$f" | cut -c1-500)"; fi
 }
