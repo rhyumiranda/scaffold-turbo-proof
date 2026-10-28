@@ -24,7 +24,7 @@ const browser = await chromium.launch();
 const ctx = await browser.newContext({ ignoreHTTPSErrors: true });
 const page = await ctx.newPage();
 async function login(p) {
-  await p.goto(BASE + '/projects'); await p.waitForSelector('#username', { timeout: 30000 });
+  for (let a = 0; a < 4; a++) { try { await p.goto(BASE + '/projects'); break; } catch (e) { if (a === 3) throw e; await sleep(2000); } } await p.waitForSelector('#username', { timeout: 30000 });
   await p.fill('#username', 'alice'); await p.fill('#password', process.env.KC_USER_PASSWORD);
   await Promise.all([p.waitForURL(BASE + '/projects', { timeout: 30000 }), p.click('#kc-login')]);
 }

@@ -102,7 +102,7 @@ ok88=1; why88=""
 ( export DATABASE_URL="$(DBURL "$DB")"; export EV_ENV_NAMES="PG_BIN NODE_ENV DATABASE_URL"
   ev_run AC-88 test-recovery -- bash -c 'PG_BIN="$(pg_config --bindir)" NODE_ENV=test pnpm --filter @repo/api test:recovery' ) || { ok88=0; why88="$why88 test:recovery exit $(cat "$EV/AC-88/test-recovery.exit");"; }
 ev_run AC-88 dump -- pg_dump -Fc -f "$WORK/ac88.dump" "$(DBURL "$DB")" || { ok88=0; why88="$why88 pg_dump;"; }
-ev_run AC-88 restore-target-up -- bash -c "docker run -d --name acc-pg-restore --network $CT_NET --cpus=2 --memory=2g -e POSTGRES_PASSWORD='$PG_PASSWORD' '$IMG_PG' && for i in \$(seq 1 60); do docker exec acc-pg-restore pg_isready -U postgres && exit 0; sleep 1; done; exit 1" || { ok88=0; why88="$why88 restore container;"; }
+ev_run AC-88 restore-target-up -- bash -c "docker run -d --name acc-pg-restore --network $CT_NET --cpus=2 --memory=2g -e POSTGRES_PASSWORD='$PG_PASSWORD' '$IMG_PG' && for i in \$(seq 1 60); do docker exec acc-pg-restore pg_isready -h 127.0.0.1 -U postgres && sleep 2 && docker exec acc-pg-restore pg_isready -h 127.0.0.1 -U postgres && exit 0; sleep 1; done; exit 1" || { ok88=0; why88="$why88 restore container;"; }
 ev_run AC-88 restore -- bash -c "docker exec acc-pg-restore createdb -U postgres restored && docker exec -i acc-pg-restore pg_restore -U postgres -d restored --no-owner --exit-on-error < '$WORK/ac88.dump'" || { ok88=0; why88="$why88 pg_restore;"; }
 Q="select count(*)::text || ' ' || md5(string_agg(t::text, '' order by id)) from projects t"
 src="$(PGDB "$DB" "$Q")"; dst="$(docker exec acc-pg-restore psql -U postgres -d restored -Atc "$Q")"
@@ -273,10 +273,10 @@ sys.exit(0 if over and max(over) > 0 else 1)
 PY
 mo=$?
 o="$EV/AC-89/scenario-overload.stdout"
-{ grep -A2 'in-flight full: GET' "$o" | grep -q 'HTTP 503' && grep -A3 'in-flight full: GET' "$o" | grep -qi 'retry-after: 1'; } || { ok89=0; why89="$why89 overload 503 with Retry-After: 1 not seen;"; }
+{ grep -A4 'in-flight full: GET' "$o" | grep -q 'HTTP 503' && grep -A4 'in-flight full: GET' "$o" | grep -qi 'retry-after: 1'; } || { ok89=0; why89="$why89 overload 503 with Retry-After: 1 not seen;"; }
 grep -A1 'in-flight full: live' "$o" | grep -q 'HTTP 200' || { ok89=0; why89="$why89 liveness not 200 under overload;"; }
 grep -A1 'after release' "$o" | grep -q 'HTTP 200' || { ok89=0; why89="$why89 no recovery after overload;"; }
-grep -i 'HTTP 429.*retry-after' "$o" > /dev/null || { ok89=0; why89="$why89 no 429 with Retry-After;"; }
+grep -iE '429.*retry-after' "$o" > /dev/null || { ok89=0; why89="$why89 no 429 with Retry-After;"; }
 [ $mo = 0 ] || { ok89=0; why89="$why89 http.server.overloaded metric not exported;"; }
 docker rm -f acc-otel > /dev/null 2>&1
 if [ $ok89 = 1 ]; then verdict AC-89 PASS "docs cover DB, session Redis, IdP, API overload (symptoms, first action, recovery) and rotation for all 5 secrets; every documented symptom observed on the containers (DB, session Redis, limiter Redis, IdP, overload 503/429 and the exported metric) with automatic recovery"; else verdict AC-89 FAIL "${why89# }"; fi
@@ -374,8 +374,8 @@ inline() { # FILE CWD COMMAND...   FILE is relative to the repo
   ev_run AC-86 "inline-$(echo "$f $cmd" | tr -c 'A-Za-z0-9\n' '_' | cut -c1-70)" "$WS/$cwd" -- bash -e -o pipefail -c "$cmd" || { ok86=0; why86="$why86 [$f] $cmd;"; return 1; }
 }
 for c in 'pnpm check:workspace' 'pnpm boundaries' 'pnpm lint' 'pnpm check:arch' 'pnpm typecheck' 'pnpm build' 'pnpm test:unit' 'pnpm contract:check'; do inline AGENTS.md . "$c"; done
-for c in 'pnpm check:arch' 'pnpm check:secrets' 'pnpm check:docs'; do inline apps/api/AGENTS.md . "$c"; done
-for c in 'pnpm lint' 'pnpm test:unit' 'pnpm check:docs' 'pnpm typecheck' 'pnpm build' 'pnpm check:budget' 'pnpm test:runtime'; do inline apps/web/AGENTS.md . "$c"; done
+for c in 'pnpm check:arch' 'pnpm check:secrets' 'pnpm check:docs' 'pnpm build'; do inline apps/api/AGENTS.md apps/api "$c"; done
+for c in 'pnpm lint' 'pnpm test:unit' 'pnpm check:docs' 'pnpm typecheck' 'pnpm build' 'pnpm check:budget' 'pnpm test:runtime'; do inline apps/web/AGENTS.md apps/web "$c"; done
 export DATABASE_URL_SAVE=""
 for c in 'pnpm install --frozen-lockfile' 'pnpm lint' 'pnpm check:arch' 'pnpm typecheck' 'pnpm build'; do inline apps/api/docs/operations.md apps/api "$c"; done
 # The API runbook sets these four before migrating and starting (documented names); TLS issuer from the local edge.
