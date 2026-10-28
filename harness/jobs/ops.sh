@@ -336,7 +336,7 @@ ev_run AC-90 step2-edits -- python3 "$OPS/remove-example.py" "$WS" || { ok90=0; 
 ev_run AC-90 step3-generate -- pnpm contract:generate || { ok90=0; why90="$why90 contract:generate;"; }
 ev_run AC-90 step3-check-before-accept -- pnpm contract:check   # the doc says removed operations are reported as breaking
 ev_run AC-90 step3-accept -- bash -c 'cp apps/api/openapi.json apps/api/contracts/accepted.openapi.json && cp apps/api/openapi.json packages/api-client/contract/accepted.openapi.json'
-ev_run AC-90 step4-delete-migration -- git rm -q apps/api/migrations/001-projects.sql || { ok90=0; why90="$why90 step 4;"; }
+ev_run AC-90 step4-delete-migration -- git rm -r -q apps/api/prisma/migrations/0001_projects || { ok90=0; why90="$why90 step 4;"; }
 git -C "$WS" add -A
 git -C "$WS" -c user.name=harness -c user.email=harness@invalid commit -qm "test: AC-90 remove Projects example"
 git -C "$WS" show --stat HEAD > "$EV/AC-90/removal.stat"

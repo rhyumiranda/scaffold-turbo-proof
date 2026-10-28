@@ -146,7 +146,7 @@ rm -rf "$WORK"/ac25-save-* "$WORK/ac25.key"
 # AC-78 and AC-79: file ownership, size, contents
 # =====================================================================================================
 ok78=1; why78=""
-for spec in acme-api:/app/dist/main.js acme-api:/app/node_modules acme-api-migrate:/app/dist/main.js acme-api-migrate:/app/node_modules acme-api-migrate:/app/scripts/migrate.mjs acme-api-migrate:/app/migrations acme-web:/app/apps/web/server.js acme-web:/app/node_modules acme-web:/app/apps/web/.next; do
+for spec in acme-api:/app/dist/main.js acme-api:/app/node_modules acme-api-migrate:/app/dist/main.js acme-api-migrate:/app/node_modules acme-api-migrate:/app/scripts/migrate.mjs acme-api-migrate:/app/prisma acme-web:/app/apps/web/server.js acme-web:/app/node_modules acme-web:/app/apps/web/.next; do
   img="${spec%%:*}"; p="${spec#*:}"
   ev_run AC-78 "writable-${img}-$(echo "$p" | tr '/' '_')" -- docker run --rm --cpus=2 --memory=2g --entrypoint sh "$img" -c "test -w $p && echo WRITABLE || echo OK"
   out="$(cat "$EV/AC-78/writable-${img}-$(echo "$p" | tr '/' '_').stdout")"
