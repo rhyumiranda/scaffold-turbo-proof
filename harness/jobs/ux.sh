@@ -113,6 +113,8 @@ if want AC-70; then
   export LH_HEADERS="$UXR/lh-headers.json"
   EV_ENV_NAMES="$EV_ENV_NAMES LH_HEADERS" pw AC-70 lighthouse-prep lhprep.cjs || { ok=0; why="$why $(pw_failed AC-70 lhprep);"; }
   mkdir -p "$WORK/lh"
+  # Quiet the host so lab TBT is not inflated by idle services: the cookie is already issued, so Keycloak and the 60 s web are stopped.
+  ev_run AC-70 quiet-host -- bash -c "docker compose -f '$HARNESS/infra/compose.yaml' stop keycloak; bash '$UX_CTL' webshort stop; uptime"
   for n in 1 2 3; do
     EV_ENV_NAMES="CHROME_PATH LH_HEADERS" CHROME_PATH="$chrome" ev_run AC-70 "lighthouse-run$n" -- "$WORK/lh/node_modules/.bin/lighthouse" "$UX_BASE/projects" --preset=perf --extra-headers="$LH_HEADERS" --output=json --output-path="$WORK/lh/run$n.json" "--chrome-flags=--headless=new --no-sandbox" --quiet || { ok=0; why="$why lighthouse run $n exit non-zero;"; }
   done
