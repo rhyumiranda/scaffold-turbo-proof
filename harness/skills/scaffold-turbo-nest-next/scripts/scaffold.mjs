@@ -186,8 +186,9 @@ async function adaptPackage(path, kind) {
 async function adaptContainerCheck(path, kind) {
   let text = await readFile(path, 'utf8');
   const childProcessCall = "spawnSync('docker', args, { env: process.env, encoding: 'utf8', timeout, maxBuffer: 4 * 1024 * 1024 })";
-  const buildCall = "docker(['build', '--label', 'scaffold.check=' + id, '-t', image, '.'], 180000)";
-  if (!text.includes(childProcessCall) || !text.includes(buildCall)) throw new Error(`Unsupported ${kind} container check; update the workspace adapter.`);
+  // The build timeout differs per companion (the API build also generates the Prisma client), so only its shape is fixed.
+  const buildCall = /docker\(\['build', '--label', 'scaffold\.check=' \+ id, '-t', image, '\.'\], \d+\)/;
+  if (!text.includes(childProcessCall) || !buildCall.test(text)) throw new Error(`Unsupported ${kind} container check; update the workspace adapter.`);
   text = text
     .replace("import { readFileSync } from 'node:fs';", "import { readFileSync } from 'node:fs';\nimport { fileURLToPath } from 'node:url';")
     .replace("const config = JSON.parse(readFileSync(new URL('../verification.config.json', import.meta.url)));", "const config = JSON.parse(readFileSync(new URL('../verification.config.json', import.meta.url)));\nconst workspaceRoot = fileURLToPath(new URL('../../..', import.meta.url));")

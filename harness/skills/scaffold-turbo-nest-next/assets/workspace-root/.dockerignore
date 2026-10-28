@@ -4,6 +4,7 @@
 **/node_modules
 **/.next
 **/dist
+**/src/generated
 **/coverage
 **/playwright-report
 **/test-results

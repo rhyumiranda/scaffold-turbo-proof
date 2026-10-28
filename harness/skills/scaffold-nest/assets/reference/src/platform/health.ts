@@ -27,7 +27,7 @@ export class HealthController {
   })
   async ready() {
     try {
-      await Promise.all([this.db.query('SELECT 1'), this.limiter.ready()]);
+      await Promise.all([this.db.ping(), this.limiter.ready()]);
       return { status: 'ready' };
     } catch {
       throw new ServiceUnavailableException();

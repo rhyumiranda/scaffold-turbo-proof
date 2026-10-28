@@ -52,7 +52,7 @@ NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="$(openssl rand -base64 32)" docker build -f 
 ## Release order and rollback
 
 1. Build and push the three images (API runtime, API migrate, web), and record their digests.
-2. Run the migrate image **once** with a migration-only database credential. It exits 0 when every migration is applied; it is safe to re-run and holds an advisory lock against concurrent runs.
+2. Run the migrate image **once** with a migration-only database credential. It runs `prisma migrate deploy` on `apps/api/prisma/migrations/` and exits 0 when every migration is applied. It is safe to re-run (nothing pending is a no-op), Prisma's advisory lock serializes concurrent runs, and it exits 1 without changing anything when an already-applied migration file was edited (checksum mismatch).
 3. Roll out the API. Wait until every replica's `/health/ready` is 200.
 4. Roll out the web app.
 
@@ -60,7 +60,7 @@ Rollback reverses steps 4 and 3 (web first, then API) to the previous digests. N
 
 ## Backup and restore
 
-Rehearse a logical restore into a fresh, throwaway cluster through the migration runner. It needs PostgreSQL client tools of the same major version as the server (`pg_config --version`):
+Rehearse a logical restore into a fresh, throwaway cluster; the drill then runs the migration runner (`prisma migrate deploy`), which must find the restored history unchanged and nothing pending. It needs PostgreSQL client tools of the same major version as the server (`pg_config --version`):
 
 ```bash
 cd apps/api && PG_BIN="$(pg_config --bindir)" NODE_ENV=test DATABASE_URL="$DATABASE_URL" pnpm test:recovery

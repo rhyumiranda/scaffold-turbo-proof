@@ -12,7 +12,7 @@ The steps below were run on a freshly generated workspace. Afterwards every stat
 ## 1. Delete the files the example owns
 
 ```bash
-git rm -r apps/api/src/projects apps/api/docs/features/projects.md \
+git rm -r apps/api/src/projects apps/api/prisma/schema/projects apps/api/docs/features/projects.md \
   apps/api/test/projects-dto.unit.test.mjs apps/api/test/projects-service.unit.test.mjs \
   apps/web/src/features/projects apps/web/src/app/projects apps/web/docs/features/projects.md \
   apps/web/tests/projects.spec.ts
@@ -50,8 +50,8 @@ For a released API, keep the old baseline and follow the versioning decision ins
 
 ## 4. Database
 
-- **Unreleased:** delete `apps/api/migrations/001-projects.sql`. In `apps/api/test/migrations.test.mjs`, rewrite the test "database constraints reject rule-breaking writes" for your table: same idea, your columns and constraints. Add your feature's migration.
-- **Released:** never edit or delete an applied migration; the runner rejects a changed checksum. Add a new migration that drops the table only after a backup and an explicit decision.
+- **Unreleased:** delete the example migration with `git rm -r apps/api/prisma/migrations/0001_projects` (step 1 already removed its schema file, `apps/api/prisma/schema/projects/`). In `apps/api/test/migrations.test.mjs`, rewrite the test "database constraints reject rule-breaking writes" for your table: same idea, your columns and constraints. Add your module's schema folder and its first migration as `apps/api/docs/architecture.md` ("Adding a module's data") describes.
+- **Released:** never edit or delete an applied migration; `pnpm migrate` refuses a changed checksum. Add a new migration that drops the table only after a backup and an explicit decision, and keep the schema file until then.
 - `apps/api/scripts/recovery.mjs` checks the tables in `RECOVERY_TABLES` (default `projects`). Set your feature's tables.
 
 ## 5. Point platform tests at your feature
@@ -84,6 +84,6 @@ Then run the database-backed and browser suites from `docs/operations.md` and th
 
 Copy the example's shape, not its rules. For each layer, keep the same kind of file and the same kind of test:
 
-- **API:** module, controller, DTOs with strict validation, application service, migration with database constraints, problem-details errors. Tests: DTO validation (`*-dto.unit.test.mjs`), service rules (`*-service.unit.test.mjs`), HTTP behavior, migration constraints.
+- **API:** module, controller, DTOs with strict validation, application service, private repository (the only code that touches the module's Prisma models), schema folder `prisma/schema/<name>/`, migration with database constraints and no foreign keys, problem-details errors. Tests: DTO validation (`*-dto.unit.test.mjs`), service rules (`*-service.unit.test.mjs`), HTTP behavior, migration constraints.
 - **Web:** `src/features/<name>/` with `services` (typed API calls), `actions` (validated Server Actions), `hooks` (form state, the only caller of actions) and `components` (UI only), plus a public `index.ts`. Routes in `src/app/<name>/` import only that `index.ts`. `pnpm check:arch` enforces this.
 - Decide ownership, deletion and retry rules from your product, not from Projects.

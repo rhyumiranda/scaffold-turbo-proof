@@ -1,0 +1,15 @@
+// Owned by the projects module (src/projects). Only src/projects may read or write these models.
+// Length, trim and version checks are CHECK constraints in prisma/migrations/0001_projects/migration.sql,
+// because the Prisma schema cannot express them.
+model Project {
+  id        String   @id @db.Uuid
+  // The identity provider's subject. A plain ID, not a relation: identities are not stored here.
+  ownerId   String   @map("owner_id")
+  name      String
+  version   Int      @default(1)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // List order of GET /v1/projects (owner first, newest first, id breaks ties).
+  @@index([ownerId, createdAt(sort: Desc), id(sort: Desc)], map: "projects_owner_order")
+  @@map("projects")
+}

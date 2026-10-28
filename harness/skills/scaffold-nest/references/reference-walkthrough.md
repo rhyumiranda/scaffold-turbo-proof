@@ -26,7 +26,7 @@ NODE_ENV=test npm test
 ```
 Tests run migrations and start a local test issuer, verify actual signed JWTs, and stop the API/issuer. They do not contact a real identity provider. Never point them at a shared or production database.
 
-For a real runtime, supply AUTH_ISSUER, AUTH_AUDIENCE, AUTH_JWKS_URL and DATABASE_URL. Set WEB_ORIGIN only for the selected browser transport. Run npm run migrate, npm run contract, and npm start. Identity endpoints must be HTTPS except loopback in NODE_ENV=test. No signing keys or production login bypass are included.
+For a real runtime, supply AUTH_ISSUER, AUTH_AUDIENCE, AUTH_JWKS_URL and DATABASE_URL. Set WEB_ORIGIN only for the selected browser transport. Run npm run migrate (prisma migrate deploy), npm run contract, and npm start. Identity endpoints must be HTTPS except loopback in NODE_ENV=test. No signing keys or production login bypass are included.
 
 ## Phase-to-file map
 
@@ -34,7 +34,7 @@ For a real runtime, supply AUTH_ISSUER, AUTH_AUDIENCE, AUTH_JWKS_URL and DATABAS
 |---|---|---|
 | 1 Contract | package.json, .env.example; complete the feature contract | Explicit access, operations, auth/deployment seams |
 | 2 Foundation | tsconfig.json, src/platform/config.ts, projects/module.ts, platform/module.ts, scripts/check-architecture.mjs, AGENTS.md, docs/ | Strict types; startup validation; executable feature boundaries; project-local knowledge |
-| 3 Data | migrations/001-projects.sql, scripts/migrate.mjs, src/platform/database.ts, test/migrations.test.mjs | Constraints; checksummed transactional migrations; clean/upgrade/failed-rollback tests; pool budgets |
+| 3 Data | prisma.config.ts, prisma/schema/, prisma/migrations/0001_projects/migration.sql, scripts/migrate.mjs, src/platform/database.ts, src/projects/repository.ts, test/migrations.test.mjs | Prisma 7 multi-file schema per module; no foreign keys; constraints in migration SQL; prisma migrate deploy with an edited-history check; clean/upgrade/failed-rollback/concurrency/drift tests; pool budgets |
 | 4 Identity | src/platform/auth.ts | Verify RS256 signature, issuer, audience, subject, exp and iat |
 | 5 HTTP | src/projects/dto.ts, controller.ts, src/platform/errors.ts, test/schema.mjs, scripts/check-contract.mjs | Integer schemas, documented errors, actual response assertions, regeneration and accepted-contract checks |
 | 6 Feature | src/projects/service.ts | Create/list/read/rename; owner predicate on every read/write |

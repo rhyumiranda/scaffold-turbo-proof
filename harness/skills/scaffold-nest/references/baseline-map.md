@@ -10,7 +10,7 @@ Use this map while adapting the ten phases. Paths are relative to assets/referen
 | N04, Q03 | openapi.json, contract baseline, scripts/check-contract.mjs, test/schema.mjs | contract:check + contract:compat; a breaking schema fixture must fail, not merely regenerate |
 | S01, S04 | JWT verification and disposable test issuer | Signature/issuer/audience/expiry tests; actual provider/session work remains required |
 | S05–S08 | request controls/config, safe diagnostics, CI audit, project operations notes | Test input/credential limits and redaction; review deployment proxy/HTTPS/shared-limiter/ASVS/update policy |
-| D01–D04, D06, D08 | migrations/, scripts/migrate.mjs, database lifecycle, projects service | test:integration includes migration clean/upgrade/failed rollback, real constraints and competing writes |
+| D01–D04, D06, D08 | prisma/schema/, prisma/migrations/, scripts/migrate.mjs (prisma migrate deploy), database lifecycle, projects service and repository | test:integration includes migration clean/upgrade/failed rollback, real constraints and competing writes |
 | R01–R02, R07 | request/database/provider budgets, runtime lifecycle | test:runtime: failed dependency, safe timeout, real signal and bounded termination; no automatic unsafe write retry |
 | O01–O02 | platform telemetry + safe error classification | Local telemetry/redaction tests; choose a protected exporter/retention policy for the actual target |
 | O05–O06 | Dockerfile, .github/workflows/verify.yml | Local compiled checks and CI configuration; build/run the container on a working daemon before claiming container proof |
