@@ -26,3 +26,6 @@ test('architecture rejects private, inverted, computed and cyclic imports', () =
   assert.ok(checkArchitecture({ 'a/index.ts': 'import(variable);' }).some((x) => x.includes('computed')));
   assert.ok(checkArchitecture({ 'a/index.ts': "import pg from 'pg';" }).some((x) => x.includes('belong to platform')));
 });
+test('acceptance defect (AC-84): deliberately failing unit test', () => {
+  assert.equal(1 + 1, 3);
+});
