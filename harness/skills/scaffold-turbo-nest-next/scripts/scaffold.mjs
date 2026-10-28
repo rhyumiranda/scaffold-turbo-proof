@@ -192,7 +192,8 @@ async function adaptContainerCheck(path, kind) {
     .replace("import { readFileSync } from 'node:fs';", "import { readFileSync } from 'node:fs';\nimport { fileURLToPath } from 'node:url';")
     .replace("const config = JSON.parse(readFileSync(new URL('../verification.config.json', import.meta.url)));", "const config = JSON.parse(readFileSync(new URL('../verification.config.json', import.meta.url)));\nconst workspaceRoot = fileURLToPath(new URL('../../..', import.meta.url));")
     .replace(childProcessCall, "spawnSync('docker', args, {\n    cwd: workspaceRoot,\n    env: process.env,\n    encoding: 'utf8',\n    timeout,\n    maxBuffer: 4 * 1024 * 1024,\n  })")
-    .replace(buildCall, `docker(['build', '--label', 'scaffold.check=' + id, '-f', 'apps/${kind}/Dockerfile', '-t', image, '.'], 180000)`);
+    // Every image build (runtime, and migrate for the API) uses the app's Dockerfile from the workspace root.
+    .replaceAll("docker(['build', '--label', 'scaffold.check=' + id, ", `docker(['build', '--label', 'scaffold.check=' + id, '-f', 'apps/${kind}/Dockerfile', `);
   await writeFile(path, text);
 }
 
