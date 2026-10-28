@@ -1,0 +1,12 @@
+{
+	auto_https off
+	admin off
+}
+https://app.acme.test:8443 {
+	tls /certs/site.crt /certs/site.key
+	reverse_proxy 127.0.0.1:3101
+}
+https://id.acme.test:8443 {
+	tls /certs/site.crt /certs/site.key
+	reverse_proxy 127.0.0.1:8080
+}
