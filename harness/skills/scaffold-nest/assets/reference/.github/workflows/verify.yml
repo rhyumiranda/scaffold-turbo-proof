@@ -6,16 +6,21 @@ on:
     - cron: '17 3 * * 1'
 permissions:
   contents: read
+# One run per branch or PR; a newer push to the same PR replaces the older run, pushes to main always finish.
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   verify:
+    name: verify
     runs-on: ubuntu-latest
     timeout-minutes: 15
     services:
       redis:
-        image: redis:8.10.1
+        image: redis:8.10.1@sha256:8a1efc5f479551822b47424ccae982026b633f28818eab0387348120a61e10e2
         ports: ['6379:6379']
       postgres:
-        image: postgres:15.15
+        image: postgres:15.15@sha256:98fe06b500b5eb29e45bf8c073eb0ca399790ce17b1d586448edc4203627d342
         env:
           POSTGRES_PASSWORD: local-test-only
           POSTGRES_DB: reference_test

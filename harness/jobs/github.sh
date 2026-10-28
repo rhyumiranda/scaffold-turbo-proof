@@ -24,7 +24,7 @@ git -C "$WS" show --stat HEAD > "$EV/AC-24/throwaway.stat"
 ev_run AC-24 check-secrets-throwaway -- pnpm check:secrets; cs=$?
 named=1
 for f in apps/api/src/x.ts apps/web/src/x.ts; do grep -q "$f" "$EV/AC-24/check-secrets-throwaway.stdout" "$EV/AC-24/check-secrets-throwaway.stderr" || named=0; done
-git -C "$WS" switch -q - && git -C "$WS" branch -q -D throwaway/ac24
+git -C "$WS" switch -q --detach "$TARGET_SHA" && git -C "$WS" branch -q -D throwaway/ac24
 if [ "$cs" != 0 ] && [ $named = 1 ] && [ "$gl_main" = 0 ]; then
   part AC-24 PASS "local check:secrets exit $cs naming both x.ts files; gitleaks on main history exit 0"
 else
@@ -42,7 +42,7 @@ ev_run AC-28 contract-generate -- pnpm contract:generate; g28=$?
 ev_run AC-28 status-after-generate -- git status --porcelain
 changed="$(awk '{print $2}' "$EV/AC-28/status-after-generate.stdout" | LC_ALL=C sort | tr '\n' ' ')"
 ev_run AC-28 contract-check-after -- pnpm contract:check; c2=$?
-git -C "$WS" checkout -q -- . && git -C "$WS" clean -qfd -e node_modules && git -C "$WS" switch -q - && git -C "$WS" branch -q -D throwaway/ac28
+git -C "$WS" checkout -q -- . && git -C "$WS" clean -qfd -e node_modules && git -C "$WS" switch -q --detach "$TARGET_SHA" && git -C "$WS" branch -q -D throwaway/ac28
 expected="apps/api/openapi.json packages/api-client/contract/openapi.json packages/api-client/src/api.d.ts "
 if [ "$b28" = 0 ] && [ "$c1" != 0 ] && [ $drift_named = 1 ] && [ "$g28" = 0 ] && [ "$changed" = "$expected" ] && [ "$c2" = 0 ]; then
   part AC-28 PASS "drifted contract:check exit $c1 naming the contract file; contract:generate changed exactly the three artifacts; recheck exit 0"
@@ -54,23 +54,27 @@ fi
 ev_run AC-85 actionlint -- docker run --rm --cpus=2 --memory=2g -v "$WS":/r -w /r "$ACTIONLINT" -color
 ev_run AC-85 zizmor -- docker run --rm --cpus=2 --memory=2g -v "$WS":/r "$ZIZMOR" --format plain /r/.github/workflows
 ev_run AC-85 zizmor-json -- docker run --rm --cpus=2 --memory=2g -v "$WS":/r "$ZIZMOR" --format json /r/.github/workflows
+# Strictest persona too: it reports findings the default persona suppresses.
+ev_run AC-85 zizmor-pedantic -- docker run --rm --cpus=2 --memory=2g -v "$WS":/r "$ZIZMOR" --persona pedantic --format json /r/.github/workflows
 ev_run AC-85 uses -- bash -c "grep -n 'uses:' .github/workflows/*.yml"
 ev_run AC-85 hardening-lines -- bash -c "grep -nE '^permissions:|^  contents:|persist-credentials|timeout-minutes|pull_request_target|secrets\\.' .github/workflows/*.yml"
 al=$(cat "$EV/AC-85/actionlint.exit")
 high=$(jq '[.[] | select((.determinations.severity // .severity // "") | test("^high$";"i"))] | length' "$EV/AC-85/zizmor-json.stdout" 2>/dev/null || echo parse-error)
+high_pedantic=$(jq '[.[] | select((.determinations.severity // .severity // "") | test("^high$";"i"))] | length' "$EV/AC-85/zizmor-pedantic.stdout" 2>/dev/null || echo parse-error)
 unpinned="$(grep -vE 'uses: [^@]+@[0-9a-f]{40}( |$)' "$EV/AC-85/uses.stdout" | tr '\n' ' ')"
 wf=.github/workflows/verify.yml
 top_perm=0; awk '/^permissions:/{p=1;next} p&&/^  contents: read/{f=1} /^[a-z]/{p=0} END{exit !f}' "$WS/$wf" && top_perm=1
-checkouts=$(grep -c 'actions/checkout@' "$WS"/.github/workflows/*.yml | awk -F: '{s+=$2} END{print s}')
-nopersist=$(grep -c 'persist-credentials: false' "$WS"/.github/workflows/*.yml | awk -F: '{s+=$2} END{print s}')
+# cat first: grep -c on a single file prints no file prefix.
+checkouts=$(cat "$WS"/.github/workflows/*.yml | grep -c 'actions/checkout@')
+nopersist=$(cat "$WS"/.github/workflows/*.yml | grep -c 'persist-credentials: false')
 jobs_n=$(python3 -c 'import yaml,sys,glob; print(sum(len(yaml.safe_load(open(f))["jobs"]) for f in glob.glob(sys.argv[1]+"/.github/workflows/*.yml")))' "$WS")
 timeouts=$(python3 -c 'import yaml,sys,glob; print(sum(1 for f in glob.glob(sys.argv[1]+"/.github/workflows/*.yml") for j in yaml.safe_load(open(f))["jobs"].values() if "timeout-minutes" in j))' "$WS")
-prt=$(grep -c pull_request_target "$WS"/.github/workflows/*.yml | awk -F: '{s+=$2} END{print s}')
-secrets_used=$(grep -cE '\$\{\{ *secrets\.' "$WS"/.github/workflows/*.yml | awk -F: '{s+=$2} END{print s}')
-if [ "$al" = 0 ] && [ "$high" = 0 ] && [ -z "$unpinned" ] && [ $top_perm = 1 ] && [ "$checkouts" = "$nopersist" ] && [ "$jobs_n" = "$timeouts" ] && [ "$prt" = 0 ] && [ "$secrets_used" = 0 ]; then
-  verdict AC-85 PASS "actionlint exit 0; zizmor 0 High; all uses: pinned to 40-hex SHA; top-level contents: read; $nopersist/$checkouts checkouts persist-credentials false; $timeouts/$jobs_n jobs have timeouts; no pull_request_target; no secrets referenced"
+prt=$(cat "$WS"/.github/workflows/*.yml | grep -c pull_request_target)
+secrets_used=$(cat "$WS"/.github/workflows/*.yml | grep -cE '\$\{\{ *secrets\.')
+if [ "$al" = 0 ] && [ "$high" = 0 ] && [ "$high_pedantic" = 0 ] && [ -z "$unpinned" ] && [ $top_perm = 1 ] && [ "$checkouts" = "$nopersist" ] && [ "$jobs_n" = "$timeouts" ] && [ "$prt" = 0 ] && [ "$secrets_used" = 0 ]; then
+  verdict AC-85 PASS "actionlint exit 0; zizmor 0 High (default and pedantic personas); all uses: pinned to 40-hex SHA; top-level contents: read; $nopersist/$checkouts checkouts persist-credentials false; $timeouts/$jobs_n jobs have timeouts; no pull_request_target; no secrets referenced"
 else
-  verdict AC-85 FAIL "actionlint=$al zizmorHigh=$high unpinned=[$unpinned] topPerm=$top_perm noPersist=$nopersist/$checkouts timeouts=$timeouts/$jobs_n prt=$prt secretsRefs=$secrets_used"
+  verdict AC-85 FAIL "actionlint=$al zizmorHigh=$high pedanticHigh=$high_pedantic unpinned=[$unpinned] topPerm=$top_perm noPersist=$nopersist/$checkouts timeouts=$timeouts/$jobs_n prt=$prt secretsRefs=$secrets_used"
 fi
 
 # ---------- AC-93 config part ----------

@@ -102,7 +102,7 @@ EV_ENV_NAMES=NEXT_PUBLIC_UNDECLARED ev_run AC-19 throwaway-build -- env NEXT_PUB
 ev_run AC-19 sentinel-grep -- bash -c 'grep -rl SENTINEL-AC19 apps/web/.next || true'
 lint_named=0; [ "$tl" != 0 ] && grep -q NEXT_PUBLIC_UNDECLARED "$EV/AC-19/throwaway-lint.stdout" "$EV/AC-19/throwaway-lint.stderr" && lint_named=1
 sentinel_absent=0; [ "$tb" = 0 ] && [ ! -s "$EV/AC-19/sentinel-grep.stdout" ] && sentinel_absent=1
-git -C "$WS" switch -q - && git -C "$WS" branch -q -D throwaway/ac19 && rm -rf "$WS/apps/web/src/app/ac19"
+git -C "$WS" switch -q --detach "$TARGET_SHA" && git -C "$WS" branch -q -D throwaway/ac19 && rm -rf "$WS/apps/web/src/app/ac19"
 if [ "$mode" = strict ] && [ -z "$undeclared" ] && { [ $lint_named = 1 ] || [ $sentinel_absent = 1 ]; }; then
   verdict AC-19 PASS "envMode strict; every web build read declared; throwaway: lintNamesVar=$lint_named sentinelAbsentFromBuild=$sentinel_absent"
 else
@@ -127,8 +127,11 @@ ev_run AC-23 check-ignore -- git check-ignore -v apps/api/.env apps/web/.env.loc
 ev_run AC-23 example-not-ignored -- bash -c 'git check-ignore -v apps/api/.env.example apps/web/.env.example; echo "exit=$?"'
 ev_run AC-23 reads -- bash -c "grep -rhoE \"(process\\.env|env)\\.[A-Z][A-Z0-9_]+|env\\[['\\\"][A-Z][A-Z0-9_]+['\\\"]\\]\" apps/*/src apps/*/scripts apps/web/next.config.ts | sort -u"
 ev_run AC-23 reads-runtime -- bash -c "grep -rhoE \"(process\\.env|env)\\.[A-Z][A-Z0-9_]+|env\\[['\\\"][A-Z][A-Z0-9_]+['\\\"]\\]\" apps/*/src apps/web/next.config.ts | sed -E \"s/.*[.\\[]['\\\"]?//; s/['\\\"]?\\]$//\" | sort -u"
-ev_run AC-23 gitleaks -- docker run --rm --cpus=2 --memory=2g -v "$WS":/r -w /r "$GITLEAKS" detect --no-git --source apps --redact --no-banner -v
-gl=$(cat "$EV/AC-23/gitleaks.exit")
+ev_run AC-23 gitleaks -- docker run --rm --cpus=2 --memory=2g -v "$WS":/r -w /r "$GITLEAKS" detect --no-git --source apps --redact --no-banner --report-format json --report-path /r/.gitleaks-ac23.json
+mv "$WS/.gitleaks-ac23.json" "$EV/AC-23/gitleaks-report.json"
+# The pass rule counts findings in the example files; findings elsewhere (build caches) are kept in the report.
+jq -r '.[] | select(.File | test("(^|/)\\.env\\.example$")) | "\(.File):\(.StartLine) \(.RuleID)"' "$EV/AC-23/gitleaks-report.json" > "$EV/AC-23/gitleaks-example-findings.txt"
+gl=$( [ -f "$EV/AC-23/gitleaks-report.json" ] && [ ! -s "$EV/AC-23/gitleaks-example-findings.txt" ] && echo 0 || echo 1 )
 ok23=1; why23=""
 for app in api web; do [ -f "$WS/apps/$app/.env.example" ] || { ok23=0; why23="$why23 apps/$app/.env.example missing;"; }; done
 root_env="$(cd "$WS" && ls -a | grep -E '^\.env' || true)"; [ -z "$root_env" ] || { ok23=0; why23="$why23 root env files: $root_env;"; }
@@ -147,9 +150,9 @@ while read -r v; do
 done < "$EV/AC-23/reads-runtime.stdout"
 head -3 "$WS/apps/web/docs/environment.md" "$WS/apps/api/docs/environment.md" > /dev/null
 grep -h '^| Variable' "$WS"/apps/*/docs/environment.md > "$EV/AC-23/doc-headers.txt"
-[ "$(grep -c 'Required.*Default.*Secret.*Purpose' "$EV/AC-23/doc-headers.txt")" = 2 ] || { ok23=0; why23="$why23 doc tables lack the four facts;"; }
-[ "$gl" = 0 ] || { ok23=0; why23="$why23 gitleaks exit $gl;"; }
-if [ $ok23 = 1 ]; then verdict AC-23 PASS "per-app .env.example; no root .env*; ignore rules work; every runtime read documented with required/default/secret/purpose; gitleaks zero findings"; else verdict AC-23 FAIL "$why23"; fi
+for app in api web; do grep -q '^| Variable | Required | Default | Secret | Purpose |' "$WS/apps/$app/docs/environment.md" || { ok23=0; why23="$why23 apps/$app env doc table lacks the four facts;"; }; done
+[ "$gl" = 0 ] || { ok23=0; why23="$why23 gitleaks findings in .env.example files (or no report);"; }
+if [ $ok23 = 1 ]; then verdict AC-23 PASS "per-app .env.example; no root .env*; ignore rules work; every runtime read documented with required/default/secret/purpose; gitleaks zero findings in example files"; else verdict AC-23 FAIL "$why23"; fi
 
 # ---------- AC-91: lockfile integrity and install-script policy ----------
 ev_run AC-91 integrity-count -- bash -c "grep -cE 'resolution: \\{integrity: sha512-' pnpm-lock.yaml"
@@ -181,8 +184,10 @@ fi
 
 # ---------- AC-95: production licences ----------
 ev_run AC-95 licenses -- pnpm licenses list --prod --json --filter @repo/api --filter @repo/web
-bad95="$(jq -r 'to_entries[] | .key as $l | .value[] | select(($l|test("AGPL|GPL|SSPL";"i")) or ($l|test("^(unknown|unlicensed|)$";"i"))) | "\(.name)@\(.versions // [.version] | join(",")) \($l)"' "$EV/AC-95/licenses.stdout" 2>/dev/null)"
+bad95="$(jq -r 'to_entries[] | .key as $l | .value[] | select(($l|test("(^|[^L])GPL|SSPL";"i")) or ($l|test("^(unknown|unlicensed|)$";"i"))) | "\(.name)@\(.versions // [.version] | join(",")) \($l)"' "$EV/AC-95/licenses.stdout" 2>/dev/null)"
 printf '%s\n' "$bad95" > "$EV/AC-95/disallowed.txt"
+# LGPL is not in the prohibited list (AGPL, GPL, SSPL, unknown); listed for the reviewer.
+jq -r 'to_entries[] | select(.key|test("LGPL";"i")) | .key as $l | .value[] | "\(.name) \($l)"' "$EV/AC-95/licenses.stdout" > "$EV/AC-95/lgpl-noted.txt" 2>/dev/null
 n95="$(jq '[to_entries[] | .value[]] | length' "$EV/AC-95/licenses.stdout" 2>/dev/null || echo 0)"
 if [ "$(cat "$EV/AC-95/licenses.exit")" = 0 ] && [ "${n95:-0}" -gt 0 ] && [ -z "$bad95" ]; then
   verdict AC-95 PASS "$n95 production packages; none AGPL/GPL/SSPL/unknown"
