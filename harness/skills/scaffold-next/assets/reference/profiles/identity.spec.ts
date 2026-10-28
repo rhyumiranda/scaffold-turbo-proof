@@ -168,6 +168,7 @@ test('prefetches and client-router requests never start a sign-in or touch cooki
           expect(reply.cookies, path).toEqual([]);
           reply = await get(reply.location, sent);
         }
+        // An empty 204: no body, no redirect, no cookie.
         expect(reply.status, path).toBe(204);
         expect(reply.cookies, path).toEqual([]);
       }

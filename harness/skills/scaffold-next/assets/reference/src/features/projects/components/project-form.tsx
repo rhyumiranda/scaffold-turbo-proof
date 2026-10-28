@@ -1,5 +1,5 @@
 'use client';
-import Link from 'next/link';
+import { ProjectLink } from './project-link';
 import { useProjectForm } from '../hooks/use-project-form';
 import type { Project } from '../services/types';
 export function ProjectForm({ project, draftScope }: { project?: Project; draftScope: string }) {
@@ -35,7 +35,7 @@ export function ProjectForm({ project, draftScope }: { project?: Project; draftS
           Sign in again (opens a new tab)
         </a>
       )}
-      {state.createdId && <Link href={'/projects/' + state.createdId}>Open created project</Link>}
+      {state.createdId && <ProjectLink href={'/projects/' + state.createdId}>Open created project</ProjectLink>}
     </form>
   );
 }

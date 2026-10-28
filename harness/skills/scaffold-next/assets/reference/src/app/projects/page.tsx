@@ -1,5 +1,4 @@
-import Link from 'next/link';
-import { ApiError, ProjectForm, listProjects, projectDraftScope } from '@/features/projects';
+import { ApiError, ProjectForm, listProjects, projectDraftScope, ProjectLink } from '@/features/projects';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 type Search = { searchParams: Promise<{ page?: string | string[] }> };
@@ -62,17 +61,17 @@ export default async function ProjectsPage({ searchParams }: Search) {
         <ul>
           {projects.map((project) => (
             <li key={project.id}>
-              <Link href={'/projects/' + project.id}>{project.name}</Link>
+              <ProjectLink href={'/projects/' + project.id}>{project.name}</ProjectLink>
               <span>Version {project.version}</span>
             </li>
           ))}
         </ul>
       )}
       <nav aria-label="Project pages">
-        {currentPage > 1 && <Link href={'/projects?page=' + (currentPage - 1)}>Previous page</Link>}
+        {currentPage > 1 && <ProjectLink href={'/projects?page=' + (currentPage - 1)}>Previous page</ProjectLink>}
         <span>Page {currentPage}</span>
         {projects.length === 25 && currentPage < 401 && (
-          <Link href={'/projects?page=' + (currentPage + 1)}>Next page</Link>
+          <ProjectLink href={'/projects?page=' + (currentPage + 1)}>Next page</ProjectLink>
         )}
       </nav>
     </>
