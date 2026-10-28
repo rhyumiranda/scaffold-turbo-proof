@@ -45,7 +45,8 @@ ac46() {
   git -C "$WS" show --stat --patch HEAD > "$EV/$ac/throwaway.diff"
   ev_run $ac migrate-edited -- pnpm migrate; local rE=$?
   dro_snapshot $ac snapshot-edited $db xmin
-  git -C "$WS" checkout -q --detach "$base" && git -C "$WS" branch -q -D throwaway/ac46
+  git -C "$WS" switch -q --detach "$TARGET_SHA" && git -C "$WS" branch -q -D throwaway/ac46 || { ok=0; why="$why could not return to the target commit;"; }
+  [ "$(git -C "$WS" rev-parse HEAD)" = "$TARGET_SHA" ] || { ok=0; why="$why HEAD is not the target commit after the throwaway;"; }
   local files; files="$(ls "$WS"/apps/api/migrations/*.sql | wc -l)"
   local rows; rows="$(section "$EV/$ac/snapshot-1.stdout" ledger | grep -c .)"
   [ "$r1" = 0 ] || { ok=0; why="$why first run exit $r1;"; }
