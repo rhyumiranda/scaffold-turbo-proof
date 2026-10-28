@@ -1,0 +1,22 @@
+{
+	auto_https off
+	admin off
+}
+https://app.acme.test:8443 {
+	tls /certs/site.crt /certs/site.key
+	reverse_proxy 127.0.0.1:3101
+}
+https://id.acme.test:8443 {
+	tls /certs/site.crt /certs/site.key
+	header {
+		Content-Security-Policy "default-src 'none'; frame-ancestors 'none'; form-action 'none'; base-uri 'none'"
+		X-Content-Type-Options nosniff
+		Strict-Transport-Security "max-age=31536000"
+		Permissions-Policy "camera=()"
+		Cross-Origin-Opener-Policy same-origin
+		Cross-Origin-Embedder-Policy require-corp
+		Cross-Origin-Resource-Policy same-origin
+		Cache-Control no-store
+	}
+	respond "IdP stub (excluded from the app scan)" 404
+}
