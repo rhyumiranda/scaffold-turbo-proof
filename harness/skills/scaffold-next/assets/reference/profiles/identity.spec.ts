@@ -94,7 +94,7 @@ const rejected = (reply: Reply) => {
 };
 
 test('sign-in transactions live only in sealed, bounded, per-sign-in cookies', async () => {
-  const redis = createClient({ url: process.env.TEST_REDIS_URL });
+  const redis = createClient({ url: process.env.TEST_REDIS_URL! });
   await redis.connect();
   const count = async () => (await redis.keys(process.env.AUTH_NAMESPACE + ':*')).length;
   try {
@@ -144,7 +144,7 @@ test('sign-in transactions live only in sealed, bounded, per-sign-in cookies', a
 });
 
 test('prefetches and client-router requests never start a sign-in or touch cookies', async () => {
-  const redis = createClient({ url: process.env.TEST_REDIS_URL });
+  const redis = createClient({ url: process.env.TEST_REDIS_URL! });
   await redis.connect();
   try {
     const before = await redis.keys(process.env.AUTH_NAMESPACE + ':*');

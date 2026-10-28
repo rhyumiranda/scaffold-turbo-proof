@@ -56,7 +56,8 @@ export class SignInError extends Error {
       this.providerError = code(providerError, /^[A-Za-z0-9_.-]{1,64}$/) ?? 'unrecognized';
     if (cause && typeof cause === 'object') {
       const { code: errorCode, name } = cause as { code?: unknown; name?: unknown };
-      this.errorCode = code(errorCode, /^[A-Z][A-Z0-9_]{1,63}$/) ?? code(name, /^[A-Za-z]{1,40}$/);
+      const safe = code(errorCode, /^[A-Z][A-Z0-9_]{1,63}$/) ?? code(name, /^[A-Za-z]{1,40}$/);
+      if (safe) this.errorCode = safe;
     }
   }
 }
