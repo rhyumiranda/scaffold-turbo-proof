@@ -142,7 +142,7 @@ PY
   cat "$EV/AC-70/sabotage-check-budget.stdout" "$EV/AC-70/sabotage-check-budget.stderr" > "$EV/AC-70/sabotage-check-budget.out"
   [ "$sb" = 0 ] || { ok=0; why="$why sabotage branch build exit $sb (cannot judge budget);"; }
   { [ "$sc" != 0 ] && grep -q 'exceeds' "$EV/AC-70/sabotage-check-budget.out"; } || { ok=0; why="$why check:budget did not fail with an 'exceeds' message on the 600 KB branch (exit $sc);"; }
-  git -C "$WS" switch -q --detach "$TARGET_SHA" && git -C "$WS" branch -q -D sabotage/AC-70-budget
+  if git -C "$WS" switch -q --detach "$TARGET_SHA" && [ "$(git -C "$WS" rev-parse HEAD)" = "$TARGET_SHA" ]; then git -C "$WS" branch -q -D sabotage/AC-70-budget; else ok=0; why="$why could not return to the target commit;"; fi
   if [ $ok = 1 ]; then verdict AC-70 PASS "budget passes on main and fails ('exceeds') on the 600 KB branch; Lighthouse mobile medians of 3: ${lh_line#MEDIAN: }"
   else verdict AC-70 FAIL "${why# }"; fi
 fi
