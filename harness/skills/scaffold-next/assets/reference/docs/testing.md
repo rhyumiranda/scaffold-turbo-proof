@@ -38,10 +38,10 @@ The real HTTP API must implement `contract/openapi.json`. The backend technology
 
 ## Executable paired-Nest adapter
 
-`tests/adapters/nest.mjs` is a complete optional adapter around the paired reference's real API/PostgreSQL/JWT/browser harness. It requires a separately generated, installed and compiled compatible Nest reference. No backend is generated or installed by this frontend.
+`tests/adapters/nest.mjs` is a complete optional adapter around the paired reference's real API/PostgreSQL/JWT/browser harness. It requires a separately generated, installed and compiled compatible Nest reference. No backend is generated or installed by this frontend. Replace `<disposable-test-database-url>` with the URL of a disposable PostgreSQL database whose name ends in `_test`.
 
 ```sh
-NEST_TEST_PROJECT=/absolute/compiled-api DATABASE_URL=postgresql://test_user@127.0.0.1:55437/acme_test npm run test:integration
+NEST_TEST_PROJECT=/absolute/compiled-api DATABASE_URL='<disposable-test-database-url>' npm run test:integration
 ```
 
 This sample only accepts loopback or an isolated CI `postgres` service. Before running, confirm the database is disposable. The adapter performs application writes through the actual API and schema changes through the API's migration runner.

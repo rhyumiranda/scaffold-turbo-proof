@@ -357,7 +357,8 @@ docker rm -f acc-api acc-web > /dev/null 2>&1
 [ -n "$b_t1" ] && run_block "$b_t1"
 DB_E2E="$(DBURL ops_e2e_test)"; ct_db_create ops_e2e_test > /dev/null 2>&1
 export TEST_REDIS_URL=redis://127.0.0.1:6379
-[ -n "$b_t2" ] && ( export DB_E2E; run_block "$b_t2" 's#postgresql://test_user@127.0.0.1:5432/test_database#'"$DB_E2E"'#g' ) || true
+# The fill names the exported variable, so the password never lands in the saved diff.
+[ -n "$b_t2" ] && ( export DB_E2E; run_block "$b_t2" "s#'<disposable-test-database-url>'#\"\$DB_E2E\"#g" ) || true
 # run_block ran in a subshell above, so re-derive the verdict inputs from the exit files
 blocks_failed=""
 while IFS=$'\t' read -r n f line lang kind shellk; do

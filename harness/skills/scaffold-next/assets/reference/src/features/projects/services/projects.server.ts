@@ -87,10 +87,11 @@ async function request<T>(
     }
   });
 }
-export async function listProjects(page = 1) {
+// cache(): metadata and the page read the same list page once per request.
+export const listProjects = cache(async (page: number = 1) => {
   z.number().int().min(1).max(401).parse(page);
   return request('projects.list', '/v1/projects?limit=25&offset=' + (page - 1) * 25, projectsSchema);
-}
+});
 // cache(): metadata and the page read the same project once per request.
 export const readProject = cache(async (id: string) => {
   z.uuid().parse(id);

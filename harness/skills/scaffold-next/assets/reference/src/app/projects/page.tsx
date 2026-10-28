@@ -11,6 +11,12 @@ function pageNumber(page: string | string[] | undefined) {
 export async function generateMetadata({ searchParams }: Search): Promise<Metadata> {
   const page = pageNumber((await searchParams).page);
   if (page === undefined) return { title: 'Page not found' };
+  // Same cached read as the page, so an outage or an expired session is named in the served <title>.
+  try {
+    await listProjects(page);
+  } catch (error) {
+    return { title: error instanceof ApiError && error.status === 401 ? 'Sign in required' : 'Projects unavailable' };
+  }
   return { title: page === 1 ? 'Projects' : `Projects, page ${page}` };
 }
 export default async function ProjectsPage({ searchParams }: Search) {
@@ -23,7 +29,6 @@ export default async function ProjectsPage({ searchParams }: Search) {
     if (error instanceof ApiError && error.status === 401)
       return (
         <>
-          <title>Sign in required · Projects reference</title>
           <h1>Sign in required</h1>
           {process.env.AUTH_MODE === 'oidc' ? (
             <a
