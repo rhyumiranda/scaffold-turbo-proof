@@ -1,0 +1,16 @@
+# OpenTelemetry Collector (protocol section 0.6): OTLP/HTTP receiver on 127.0.0.1:4318 and a file exporter.
+# Host networking so the apps reach it on loopback (the apps accept plain http only for loopback endpoints).
+# The container runs as the runner's own uid so the output file is readable by the job.
+name: dro-observability
+services:
+  otel:
+    image: otel/opentelemetry-collector-contrib:0.139.0@sha256:faf125d656fa47cea568b2f3b4494efd2525083bc75c1e96038bc23f05cd68fd
+    container_name: dro-otel
+    network_mode: host
+    user: "${DRO_UID}:${DRO_GID}"
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./otel-config.yaml:/etc/otelcol/config.yaml:ro
+      - ${OTEL_OUT}:/out
+    cpus: 2
+    mem_limit: 2g

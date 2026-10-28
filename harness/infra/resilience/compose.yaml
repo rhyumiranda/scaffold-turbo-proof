@@ -1,0 +1,34 @@
+# Resilience job services. PostgreSQL and Redis keep their data across `docker stop` / `docker start` (named
+# volumes, Redis append-only file) so an outage test is a real stop and start of the same server, not a data loss.
+# Toxiproxy runs on the host network (reaches 127.0.0.1 services, is reached on 127.0.0.1).
+name: dro-resilience
+services:
+  postgres:
+    image: postgres:15.15@sha256:98fe06b500b5eb29e45bf8c073eb0ca399790ce17b1d586448edc4203627d342
+    container_name: dro-pg
+    command: ["postgres", "-c", "fsync=off", "-c", "synchronous_commit=off", "-c", "full_page_writes=off", "-c", "max_connections=200"]
+    environment: { POSTGRES_PASSWORD: "${PG_PASSWORD}", POSTGRES_DB: res_test }
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    ports: ["127.0.0.1:5432:5432"]
+    healthcheck: { test: ["CMD", "pg_isready", "-U", "postgres"], interval: 1s, retries: 60 }
+    cpus: 2
+    mem_limit: 2g
+  redis:
+    image: redis:8.2.2@sha256:4521b581dbddea6e7d81f8fe95ede93f5648aaa66a9dacd581611bf6fe7527bd
+    container_name: dro-redis
+    command: ["redis-server", "--save", "", "--appendonly", "yes"]
+    volumes: ["redisdata:/data"]
+    ports: ["127.0.0.1:6379:6379"]
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 1s, retries: 60 }
+    cpus: 2
+    mem_limit: 2g
+  toxiproxy:
+    image: ghcr.io/shopify/toxiproxy:2.12.0@sha256:9378ed52a28bc50edc1350f936f518f31fa95f0d15917d6eb40b8e376d1a214e
+    container_name: dro-toxiproxy
+    network_mode: host
+    command: ["-host=127.0.0.1", "-port=8474"]
+    cpus: 2
+    mem_limit: 2g
+volumes:
+  pgdata: {}
+  redisdata: {}
