@@ -44,7 +44,7 @@ ct_hosts() { echo "127.0.0.1 app.acme.test id.acme.test api.acme.test" | sudo te
 
 ct_pg_up() {
   docker network inspect "$CT_NET" > /dev/null 2>&1 || docker network create "$CT_NET" || return 1
-  POSTGRES_PASSWORD="$PG_PASSWORD" docker run -d --name acc-pg --network "$CT_NET" --cpus=2 --memory=2g --tmpfs /var/lib/postgresql/data \
+  POSTGRES_PASSWORD="$PG_PASSWORD" docker run -d --name acc-pg --network "$CT_NET" --cpus=2 --memory=2g \
     -e POSTGRES_PASSWORD -p 127.0.0.1:5432:5432 "$IMG_PG" \
     postgres -c fsync=off -c synchronous_commit=off -c full_page_writes=off -c max_connections=200 || return 1
   local i; for i in $(seq 1 90); do docker exec acc-pg pg_isready -U postgres > /dev/null 2>&1 && return 0; sleep 1; done
