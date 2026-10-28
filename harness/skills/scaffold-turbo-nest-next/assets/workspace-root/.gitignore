@@ -1,6 +1,7 @@
 node_modules/
 .turbo/
 dist/
+apps/api/src/generated/
 .next/
 coverage/
 playwright-report/

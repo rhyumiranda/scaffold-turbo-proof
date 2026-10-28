@@ -17,7 +17,7 @@ Build the requested API, not a plan for building it. Implement and check each ph
 - For each phase, inspect its mapped source, adapt it, then run the mapped check before marking it complete. Use [baseline coverage](references/baseline-map.md) to distinguish shipped controls from provider/target work. An unsupported profile requires implementation and evidence, not a claim that the base template covers it.
 
 - Read [project intake](references/intake.md) first. Separate scaffolding a project from adding a feature. Follow applicable preflight instructions before existing-project changes.
-- Preserve user choices. The executable reference uses feature modules, REST/OpenAPI, PostgreSQL, and npm. Other choices are adaptations requiring equivalent evidence, not untested drop-in profiles.
+- Preserve user choices. The executable reference uses feature modules that each own their data (a modular monolith), REST/OpenAPI, PostgreSQL through Prisma ORM 7.10.1 (driver adapter, no foreign keys), and npm. Other choices are adaptations requiring equivalent evidence, not untested drop-in profiles.
 - Read [architecture and data](references/architecture-data.md) before phases 2–6; [security and reliability](references/security-reliability.md) before phases 4 and 7–9; [verification](references/verification.md) before checks.
 - Track applicability and evidence with [requirements](references/requirements.md). Check version-sensitive behavior against [primary sources](references/sources.md). No unpinned latest generator or invented tested version matrix.
 - The bundled assets/reference is application code. The feature-contract asset is a project record; the generator creates a fresh manifest. Start gates unrun; update only from observed results.

@@ -4,7 +4,7 @@ Every variable the API reads. The process validates them before it listens and e
 
 | Variable | Required | Default | Secret | Purpose |
 |---|---|---|---|---|
-| `DATABASE_URL` | yes | — | yes | PostgreSQL connection URL (`postgres:` or `postgresql:`). Contains the database password. |
+| `DATABASE_URL` | yes | — | yes | PostgreSQL connection URL (`postgres:` or `postgresql:`). Contains the database password. An optional `?schema=<name>` selects a PostgreSQL schema other than `public`, for the API and for migrations alike. |
 | `AUTH_ISSUER` | yes | — | no | OIDC issuer identifier; must equal the token `iss`. `https:` required (plain `http:` only with `NODE_ENV=test` on loopback). |
 | `AUTH_AUDIENCE` | yes | — | no | Expected token `aud` for this API. Tokens for other audiences get 401. |
 | `AUTH_JWKS_URL` | yes | — | no | Provider signing-key endpoint. Same HTTPS rule as `AUTH_ISSUER`. |
@@ -25,4 +25,4 @@ Every variable the API reads. The process validates them before it listens and e
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | when `TELEMETRY_EXPORTER=otlp` | — | no | Collector URL. `https:` except on loopback; no credentials in the URL. |
 | `OTEL_SERVICE_NAME` | no | `api` | no | `service` field in logs and `service.name` in telemetry. |
 
-The migration job (`scripts/migrate.mjs`) reads only `DATABASE_URL`; give it a migration-only credential.
+The migration job (`scripts/migrate.mjs`, which runs `prisma migrate deploy`) reads `DATABASE_URL`; give it a migration-only credential. The migrate image also sets `PRISMA_SCHEMA_ENGINE_BINARY` to the schema engine it carries, so it never downloads anything. `prisma.config.ts` reads `DATABASE_URL` only for the Prisma CLI; `prisma generate` needs no database.

@@ -52,7 +52,7 @@ NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="$(openssl rand -base64 32)" docker build -f 
 ## Release order and rollback
 
 1. Build and push the three images (API runtime, API migrate, web), and record their digests.
-2. Run the migrate image **once** with a migration-only database credential. It exits 0 when every migration is applied; it is safe to re-run and holds an advisory lock against concurrent runs.
+2. Run the migrate image **once** with a migration-only database credential. It runs `prisma migrate deploy` on `apps/api/prisma/migrations/` and exits 0 when every migration is applied. It is safe to re-run (nothing pending is a no-op), Prisma's advisory lock serializes concurrent runs, and it exits 1 without changing anything when an already-applied migration file was edited (checksum mismatch).
 3. Roll out the API. Wait until every replica's `/health/ready` is 200.
 4. Roll out the web app.
 
@@ -60,7 +60,7 @@ Rollback reverses steps 4 and 3 (web first, then API) to the previous digests. N
 
 ## Backup and restore
 
-Rehearse a logical restore into a fresh, throwaway cluster through the migration runner. It needs PostgreSQL client tools of the same major version as the server (`pg_config --version`):
+Rehearse a logical restore into a fresh, throwaway cluster; the drill then runs the migration runner (`prisma migrate deploy`), which must find the restored history unchanged and nothing pending. It needs PostgreSQL client tools of the same major version as the server (`pg_config --version`):
 
 ```bash
 cd apps/api && PG_BIN="$(pg_config --bindir)" NODE_ENV=test DATABASE_URL="$DATABASE_URL" pnpm test:recovery
@@ -93,7 +93,7 @@ Every log line is one JSON object with `time`, `level`, `service` and `event`. R
 | Situation | What you see | First action | Recovery |
 |---|---|---|---|
 | Database down or too slow | API `/health/ready` 503 within seconds; API answers 503 problem+json with `Retry-After`; `database.query_failure` log events; web `/projects` shows "Projects unavailable" with a Try again button | Check the database host and connection count; do not restart the API (liveness stays 200) | Automatic once the database answers: readiness returns to 200 without a restart |
-| Redis (web sessions) down | Signed-in pages fail and sign-ins end on `/sign-in-problem?reason=rejected` with an `identity.callback.rejected` line, reason `session_store_unavailable` (starting a sign-in needs no Redis); web logs `framework.log` errors from the session store; `/healthz` stays 200 | Restore Redis; sessions in it are lost only if Redis data was lost | Automatic reconnect; users whose session data was lost sign in again |
+| Redis (web sessions) down | Sign-in and signed-in pages fail; web logs `framework.log` errors from the session store; `/healthz` stays 200 | Restore Redis; sessions in it are lost only if Redis data was lost | Automatic reconnect; users whose session data was lost sign in again |
 | Redis (API limiter, `LIMITER_MODE=redis`) down | API `/health/ready` 503 and requests 503 (fails closed, never unlimited) | Restore Redis | Automatic |
 | Identity provider down | New sign-ins land on `/sign-in-problem?reason=unavailable` (the web app re-checks the provider at most every 5 s, so the first sign-ins after an outage starts may still be sent to it); existing sessions keep working until their access token needs a refresh; the API keeps accepting valid tokens with its cached signing keys | Check the provider's status | Automatic; users retry sign-in from the problem page |
 | API overloaded | 503 with `Retry-After: 1` from the in-flight limit, or 429 with `Retry-After` from rate limits; `http.server.overloaded` metric rises; liveness stays 200 | Scale out the API, or raise `MAX_IN_FLIGHT` only if the database has headroom | Clears as load drops |
@@ -105,7 +105,6 @@ Every log line is one JSON object with `time`, `level`, `service` and `event`. R
 | Database password (`DATABASE_URL`) | Create the new password on the database role (most platforms allow two valid credentials during a rotation), update the secret store, roll the API one replica at a time, confirm readiness, then revoke the old credential. Rotate the migration credential the same way before the next release. |
 | `AUTH_CLIENT_SECRET` | Generate a second client secret at the identity provider (or a new client with the same redirect URIs), update the secret store, roll the web app, confirm sign-in, then delete the old secret. Existing sessions are unaffected. |
 | `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | Generate a new key (`openssl rand -base64 32`), rebuild the web image with it and a new `APP_DEPLOYMENT_ID`, and roll every web replica to that image. Forms rendered by the old build fail once; users reload and submit again. Then revoke pull access to the old image. |
-| `AUTH_TRANSACTION_SECRET` | Generate a new value (`node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))"`), update the secret store, and roll every web replica. It only seals sign-in transaction cookies, which live five minutes: sign-ins started before the change fail once as `identity.callback.rejected` with reason `invalid_transaction`, and users start again from the problem page. Signed-in sessions are unaffected. While replicas run both values, a sign-in can fail the same way. |
 | Redis credentials (`AUTH_REDIS_URL`, `LIMITER_REDIS_URL`) | Add a second password to the Redis ACL user, update the secret store, roll the web app and API, then remove the old password. |
 | OTLP collector credentials | Endpoint URLs must not contain credentials. Authenticate at the collector (mutual TLS or a local agent) and rotate there; the apps need no change. |
 

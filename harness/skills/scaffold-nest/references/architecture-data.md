@@ -8,9 +8,10 @@ Organize by domain feature, with explicit exports. Controllers translate HTTP; a
 
 A useful initial shape:
 ```text
-src/<feature>/            module, controller, DTOs, operations, index.ts public surface
-src/platform/             configuration, identity, database, health, logging
-migrations/               reviewed migration artifacts, or ORM equivalent
+src/<feature>/            module, controller, DTOs, operations, private repository, index.ts public surface
+src/platform/             configuration, identity, database (pool + Prisma client), health, logging
+prisma/schema/            base.prisma (generator, datasource) + one <feature>/ folder of models per module
+prisma/migrations/        reviewed SQL migrations, applied only with prisma migrate deploy
 test/                     HTTP and real-dependency integration tests
 docs/                     architecture, decisions, feature and operations guides
 ```
@@ -34,16 +35,16 @@ Run contract:check for runtime/schema agreement and contract:compat against the 
 
 ## Persistence and migrations
 
-State business invariants before schema design. Enforce meaningful foreign keys, uniqueness, nullability and checks at the database. Define timestamp/time-zone serialization, precision/currency rules, large identifiers, nullable fields, and deletion/retention behavior.
+State business invariants before schema design. Enforce uniqueness, nullability and checks at the database. The reference is a modular monolith: each module owns its models, there are no foreign keys (`relationMode = "prisma"`; plain ID columns across modules, read through the owning module's service), and `check:arch` enforces both, including a ban on `FOREIGN KEY`/`REFERENCES` in migrations. Define timestamp/time-zone serialization, precision/currency rules, large identifiers, nullable fields, and deletion/retention behavior.
 
 Use transactions for related writes; avoid holding locks while calling external providers. Choose conditional updates, version checks, isolation, or locks according to the invariant. Test two competing operations; a transaction alone does not prove race safety. Bound query durations and pool sizes across all processes/replicas; inspect representative data plans, not only empty fixtures.
 
 User policy: direct agent SQL/database inspection is read-only. Administrative schema/data changes use reviewed migration files. Normal runtime operations and integration tests call application behavior; they do not become permission to run ad-hoc administrative writes against shared data.
 
-If Prisma is selected:
+The reference uses Prisma ORM 7.10.1 (prisma.config.ts, multi-file schema, `prisma-client` generator, `@prisma/adapter-pg` over a platform-owned pg pool):
 - Never use migrate dev, migrate reset, or db push, even as a quick local setup shortcut.
-- Verify the exact pinned CLI's supported migration-authoring/diff workflow, or author reviewed migration SQL explicitly.
-- Apply migrations using prisma migrate deploy with an explicitly verified target.
+- Author migration SQL offline with `prisma migrate diff --from-empty|--from-config-datasource --to-schema prisma/schema --script`, add CHECK constraints by hand, review it, commit it.
+- Apply migrations using prisma migrate deploy with an explicitly verified target (`scripts/migrate.mjs` refuses an edited applied migration first, because deploy alone does not).
 - Do not pipe generated SQL directly into a database.
 - Use dedicated disposable databases and migrations for test setup; avoid destructive shared-database teardown.
 

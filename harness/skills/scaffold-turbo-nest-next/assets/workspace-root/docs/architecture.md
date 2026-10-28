@@ -1,6 +1,6 @@
 # Architecture
 
-`apps/api` is the authoritative Nest API and database boundary. `apps/web` is a server-first Next frontend. They communicate through HTTP; neither imports the other's source.
+`apps/api` is the authoritative Nest API and database boundary. Inside it, each Nest module owns its data (its own Prisma schema folder and models, plain IDs instead of foreign keys); see `apps/api/docs/architecture.md`. `apps/web` is a server-first Next frontend. They communicate through HTTP; neither imports the other's source.
 
 `packages/api-client` owns checked-in browser-safe OpenAPI types generated from the API contract. `packages/eslint-config` and `packages/typescript-config` share tooling policy while preserving framework-specific behavior.
 

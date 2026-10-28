@@ -22,7 +22,7 @@ export PGC="$(docker compose -f "$HARNESS/infra/compose.yaml" ps -q postgres)"
 kc_wait || { dro_fail_all "setup failed: Keycloak token endpoint did not answer" $OWNED; exit 0; }
 echo "services up: postgres=$PGC"
 
-migrate_db() { # migrate_db AC label db   create (if new) and migrate a disposable database through the migration runner
+migrate_db() { # migrate_db AC label db   create (if new) and migrate a disposable database through the migration runner (prisma migrate deploy)
   ev_run "$1" "create-$2" -- docker exec "$PGC" createdb -U postgres "$3" || return 1
   export DATABASE_URL="$(dro_url "$3")" NODE_ENV=test EV_ENV_NAMES="DATABASE_URL NODE_ENV"
   ev_run "$1" "$2" -- pnpm migrate
@@ -40,14 +40,15 @@ ac46() {
   dro_snapshot $ac snapshot-2 $db xmin
   local base; base="$(git -C "$WS" rev-parse HEAD)"
   git -C "$WS" switch -q -c throwaway/ac46
-  printf '\n-- AC-46 harness edit: a comment appended to an applied migration\n' >> "$WS/apps/api/migrations/001-projects.sql"
+  # The first Prisma migration replaces migrations/001-projects.sql of the earlier runner.
+  printf '\n-- AC-46 harness edit: a comment appended to an applied migration\n' >> "$WS/apps/api/prisma/migrations/0001_projects/migration.sql"
   git -C "$WS" add -A && git -C "$WS" -c user.name=harness -c user.email=harness@invalid commit -qm "test: AC-46 throwaway edit of an applied migration"
   git -C "$WS" show --stat --patch HEAD > "$EV/$ac/throwaway.diff"
   ev_run $ac migrate-edited -- pnpm migrate; local rE=$?
   dro_snapshot $ac snapshot-edited $db xmin
   git -C "$WS" switch -q --detach "$TARGET_SHA" && git -C "$WS" branch -q -D throwaway/ac46 || { ok=0; why="$why could not return to the target commit;"; }
   [ "$(git -C "$WS" rev-parse HEAD)" = "$TARGET_SHA" ] || { ok=0; why="$why HEAD is not the target commit after the throwaway;"; }
-  local files; files="$(ls "$WS"/apps/api/migrations/*.sql | wc -l)"
+  local files; files="$(ls "$WS"/apps/api/prisma/migrations/*/migration.sql | wc -l)"
   local rows; rows="$(section "$EV/$ac/snapshot-1.stdout" ledger | grep -c .)"
   [ "$r1" = 0 ] || { ok=0; why="$why first run exit $r1;"; }
   [ "$rows" = "$files" ] && [ "$rows" -ge 1 ] || { ok=0; why="$why ledger rows=$rows vs $files migration files;"; }
@@ -56,10 +57,10 @@ ac46() {
   cmp -s "$EV/$ac/snapshot-1.stdout" "$EV/$ac/snapshot-2.stdout" || { ok=0; why="$why second run changed schema or ledger rows;"; }
   [ "$rE" != 0 ] || { ok=0; why="$why edited migration was accepted (exit 0);"; }
   cat "$EV/$ac/migrate-edited.stdout" "$EV/$ac/migrate-edited.stderr" | grep -qi 'checksum mismatch' || { ok=0; why="$why edited run did not name a checksum mismatch;"; }
-  cat "$EV/$ac/migrate-edited.stdout" "$EV/$ac/migrate-edited.stderr" | grep -q '001-projects.sql' || { ok=0; why="$why edited run did not name the file;"; }
+  cat "$EV/$ac/migrate-edited.stdout" "$EV/$ac/migrate-edited.stderr" | grep -q '0001_projects' || { ok=0; why="$why edited run did not name the migration;"; }
   cmp -s "$EV/$ac/snapshot-1.stdout" "$EV/$ac/snapshot-edited.stdout" || { ok=0; why="$why edited run changed the database;"; }
   tracked_clean $ac status-after || { ok=0; why="$why tracked files changed;"; }
-  if [ $ok = 1 ]; then verdict $ac PASS "empty DB -> schema + $rows ledger row(s); 2nd run exit 0 with identical schema, ledger and row versions; edited 001-projects.sql -> exit $rE naming the checksum mismatch, database unchanged"; else verdict $ac FAIL "${why# }"; fi
+  if [ $ok = 1 ]; then verdict $ac PASS "empty DB -> schema + $rows ledger row(s); 2nd run exit 0 with identical schema, ledger and row versions; edited 0001_projects/migration.sql -> exit $rE naming the checksum mismatch, database unchanged"; else verdict $ac FAIL "${why# }"; fi
 }
 
 # ---------- AC-47 ----------
