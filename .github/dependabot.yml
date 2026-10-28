@@ -1,0 +1,51 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # Matches pnpm minimumReleaseAge: never propose a release younger than one day.
+    cooldown:
+      default-days: 1
+    open-pull-requests-limit: 5
+    groups:
+      # OpenTelemetry packages move together; kept apart so one incompatible release cannot block other updates.
+      opentelemetry:
+        patterns: ['@opentelemetry/*', '@vercel/otel']
+      workspace:
+        patterns: ['*']
+        exclude-patterns: ['@opentelemetry/*', '@vercel/otel']
+        update-types: ['minor', 'patch']
+    ignore:
+      # Node is pinned to 24 (package.json engines, .nvmrc, Dockerfiles); move majors by hand.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
+      # TypeScript stays on 5.9 (see apps/api/docs/decisions.md); framework and lint peers reject 6+ today.
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
+      # The web app uses @vercel/otel, which supports only the OpenTelemetry 2.x SDK (API below 1.10), while the API
+      # uses the 3.x SDK (API 1.10). One shared update cannot satisfy both, so the API package is updated by hand.
+      - dependency-name: '@opentelemetry/api'
+      # Review 0.x exporter minors (breaking by semver rules) by hand; patches still arrive.
+      - dependency-name: '@opentelemetry/exporter-metrics-otlp-http'
+        update-types: ['version-update:semver-minor', 'version-update:semver-major']
+      - dependency-name: '@opentelemetry/resources'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@opentelemetry/sdk-metrics'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@opentelemetry/sdk-trace-base'
+        update-types: ['version-update:semver-major']
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  # Base images are pinned by digest; Dependabot proposes digest and Node 24.x updates for both Dockerfiles.
+  - package-ecosystem: docker
+    directories: ['/apps/api', '/apps/web']
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 1
+    ignore:
+      - dependency-name: node
+        update-types: ['version-update:semver-major']
