@@ -75,9 +75,21 @@ try {
     check('session Redis down: signed-in page fails', !okPage);
     await page.screenshot({ path: OUT + '/redis-down-signed-in.png' });
     const c2 = await browser.newContext({ ignoreHTTPSErrors: true }); const p2 = await c2.newPage();
+    // Documented symptom (docs/operations.md triage table): starting a sign-in needs no Redis, so the provider form
+    // opens; completing it ends on /sign-in-problem?reason=rejected with identity.callback.rejected,
+    // reason session_store_unavailable.
     await p2.goto(BASE + '/auth/login?returnTo=%2Fprojects').catch(() => null);
-    const formShown = await p2.locator('#username').count();
-    check('session Redis down: new sign-in fails (no login form)', formShown === 0);
+    let landed = '';
+    if (await p2.locator('#username').count()) {
+      await p2.fill('#username', 'alice'); await p2.fill('#password', process.env.KC_USER_PASSWORD);
+      await Promise.all([p2.waitForURL(/\/sign-in-problem|\/projects/, { timeout: 30000 }).catch(() => {}), p2.click('#kc-login')]);
+      landed = p2.url();
+    }
+    check('session Redis down: new sign-in ends on /sign-in-problem?reason=rejected', /\/sign-in-problem\?reason=rejected/.test(landed), { landed: landed.replace(/\?.*reason=/, '?reason=') });
+    await sleep(1000);
+    const rejectedLogged = Number(sh(`docker logs acc-web 2>&1 | grep -c '"identity.callback.rejected"' | tr -d ' ' || true`)) > 0
+      && Number(sh(`docker logs acc-web 2>&1 | grep '"identity.callback.rejected"' | grep -c session_store_unavailable || true`)) > 0;
+    check('session Redis down: identity.callback.rejected logged with reason session_store_unavailable', rejectedLogged);
     check('session Redis down: web /healthz stays 200', (await status(WEB + '/healthz')).s === 200);
     await sleep(2000);
     check('session Redis down: web logs framework.log errors', Number(sh("docker logs acc-web 2>&1 | grep framework.log | grep -c '\"level\":\"error\"' || true")) > 0);
