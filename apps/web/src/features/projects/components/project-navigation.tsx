@@ -29,9 +29,10 @@ export function ProjectNavigation() {
     document.addEventListener('click', navigate);
     return () => document.removeEventListener('click', navigate);
   }, [router]);
+  if (!pending) return null;
   return (
     <span role="status" aria-live="polite">
-      {pending ? 'Loading…' : ''}
+      Loading…
     </span>
   );
 }

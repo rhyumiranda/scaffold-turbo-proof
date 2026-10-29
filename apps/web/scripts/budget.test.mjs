@@ -48,4 +48,5 @@ test('private project links use one delegated navigator instead of hydrating eve
   assert.match(form, /<a data-project-navigation href=\{'\/projects\/' \+ state\.createdId\}>/);
   assert.match(navigation, /a\[data-project-navigation\]/);
   assert.match(navigation, /router\.push\(target\.pathname \+ target\.search \+ target\.hash\)/);
+  assert.match(navigation, /if \(!pending\) return null/);
 });
