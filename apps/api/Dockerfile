@@ -71,7 +71,7 @@ RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack 
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=builder /runtime/api/ ./
-COPY --from=builder /repo/apps/api/dist ./dist
+COPY --from=builder /repo/apps/api/dist-does-not-exist ./dist
 USER node
 EXPOSE 4100
 CMD ["node", "dist/main.js"]
