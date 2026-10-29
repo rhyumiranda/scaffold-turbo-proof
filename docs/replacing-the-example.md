@@ -15,7 +15,7 @@ The steps below were run on a freshly generated workspace. Afterwards every stat
 git rm -r apps/api/src/projects apps/api/prisma/schema/projects apps/api/docs/features/projects.md \
   apps/api/test/projects-dto.unit.test.mjs apps/api/test/projects-service.unit.test.mjs \
   apps/web/src/features/projects apps/web/src/app/projects apps/web/docs/features/projects.md \
-  apps/web/tests/projects.spec.ts
+  apps/web/tests/projects.spec.ts apps/web/scripts/projects-navigation.test.mjs
 ```
 
 ## 2. Edit the shared files that name it
@@ -23,6 +23,7 @@ git rm -r apps/api/src/projects apps/api/prisma/schema/projects apps/api/docs/fe
 | File | Change |
 |---|---|
 | `apps/api/src/app.ts` | Remove the `ProjectsModule` import and its entry in `imports`; import your module instead. Change the `setTitle('Projects reference')` text. |
+| `apps/web/package.json` | Remove `scripts/projects-navigation.test.mjs` from `test:unit`; replace it with an equivalent test for your feature when it has private list/detail navigation. |
 | `apps/web/src/lib/feature-routes.mjs` | The only place shared web code names the feature. Set `homePath` (where sign-in lands), `privatePaths` (pages that need a session) and `operations` (names allowed in logs and traces). With no feature yet: `'/'`, `[]`, `[]`. |
 | `apps/web/src/app/page.tsx` | It redirects to `homePath`. If `homePath` is `'/'`, replace it with a real page, or it redirects to itself. |
 | `apps/web/src/app/layout.tsx` | Change the `Projects reference` title. |

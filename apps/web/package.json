@@ -12,7 +12,7 @@
     "typecheck": "node scripts/typegen.mjs && tsc --noEmit",
     "lint": "eslint . --max-warnings 0 && pnpm check:arch",
     "check:arch": "node scripts/check-architecture.mjs",
-    "test:unit": "node --test scripts/architecture.test.mjs scripts/telemetry.test.mjs scripts/budget.test.mjs scripts/integration.test.mjs scripts/install-policy.test.mjs scripts/security.test.mjs scripts/load.test.mjs scripts/deployment.test.mjs scripts/trace-export.test.mjs scripts/return-to.test.mjs scripts/runtime-config.test.mjs scripts/transaction-cookie.test.mjs",
+    "test:unit": "node --test scripts/architecture.test.mjs scripts/telemetry.test.mjs scripts/budget.test.mjs scripts/projects-navigation.test.mjs scripts/integration.test.mjs scripts/install-policy.test.mjs scripts/security.test.mjs scripts/load.test.mjs scripts/deployment.test.mjs scripts/trace-export.test.mjs scripts/return-to.test.mjs scripts/runtime-config.test.mjs scripts/transaction-cookie.test.mjs",
     "test:identity": "node --test scripts/identity.test.mjs",
     "test:identity:browser": "node scripts/run-integration.mjs --identity",
     "test:telemetry": "node scripts/run-integration.mjs --identity --telemetry",
