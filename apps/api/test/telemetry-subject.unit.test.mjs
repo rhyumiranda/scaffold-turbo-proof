@@ -15,7 +15,10 @@ test('authenticated request completion logs the verified subject', () => {
   try {
     requestTelemetry(
       {
-        headers: {},
+        headers: {
+          authorization: 'Bearer never-log-request-token',
+          cookie: 'session=never-log-request-cookie',
+        },
         method: 'POST',
         route: { path: '/v1/projects' },
         identity: { subject: 'keycloak-alice-subject' },
@@ -31,4 +34,6 @@ test('authenticated request completion logs the verified subject', () => {
   const record = JSON.parse(lines[0]);
   assert.equal(record.event, 'request.complete');
   assert.equal(record.subject, 'keycloak-alice-subject');
+  assert.equal(record.headers, undefined);
+  assert.ok(!lines[0].includes('never-log-request'));
 });

@@ -24,8 +24,8 @@ test('OIDC sign-in, persisted change, CSRF rejection, refresh and logout invalid
   expect((await page.request.post('/auth/refresh', { headers: { origin: process.env.WEB_TEST_URL! } })).status()).toBe(
     204,
   );
-  // The session ends while the form is open (for example, signed out in another tab). Saving redirects directly
-  // through sign-in; the stale mutation is never accepted.
+  // The session ends while the form is open (for example, signed out in another tab). The original tab keeps its
+  // draft while sign-in happens in a new tab; the stale mutation is never accepted.
   expect(
     (
       await page.request.post('/auth/logout', { headers: { origin: process.env.WEB_TEST_URL! }, maxRedirects: 0 })
@@ -34,9 +34,18 @@ test('OIDC sign-in, persisted change, CSRF rejection, refresh and logout invalid
   const kept = 'Kept after expiry ' + Date.now();
   await page.getByLabel('Project name').fill(kept);
   await page.getByRole('button', { name: 'Create project' }).click();
-  await expect(page).toHaveURL(/\/projects$/);
-  await expect(page.getByRole('heading', { name: 'Projects', exact: true })).toBeVisible();
-  await expect(page.getByText(kept, { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('status')).toContainText('Your session expired.');
+  await expect(page.getByLabel('Project name')).toHaveValue(kept);
+  const signIn = page.getByRole('link', { name: 'Sign in again' });
+  await expect(signIn).toHaveAttribute('target', '_blank');
+  const [popup] = await Promise.all([page.waitForEvent('popup'), signIn.click()]);
+  await expect(popup.getByRole('heading', { name: 'Projects', exact: true })).toBeVisible();
+  await popup.close();
+  await expect(page.getByLabel('Project name')).toHaveValue(kept);
+  await page.getByRole('button', { name: 'Create project' }).click();
+  await expect(page.getByRole('status')).toContainText('Project created.');
+  await page.reload();
+  await expect(page.getByRole('link', { name: kept, exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Signed out', exact: true })).toBeVisible();
   await context.addCookies([session!]);

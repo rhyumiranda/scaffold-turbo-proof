@@ -7,6 +7,7 @@ The supplied API owns identity verification, resource permissions and persistenc
 | Server-rendered list/detail | `src/app/projects/` | `services/projects.server.ts` |
 | Interactive form | `components/project-form.tsx` | `hooks/use-project-form.ts` |
 | Form state/focus and action choice | `hooks/use-project-form.ts` | `actions/projects.ts` |
+| Session preflight | `hooks/use-project-form.ts` | `services/session.browser.ts` |
 | Validated mutation | `actions/projects.ts` | server service |
 | Typed transport | `services/projects.server.ts` | external API |
 

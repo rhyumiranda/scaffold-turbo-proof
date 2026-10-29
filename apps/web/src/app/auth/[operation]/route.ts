@@ -85,10 +85,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 }
 export async function POST(request: NextRequest, { params }: { params: Promise<{ operation: string }> }) {
   try {
+    const operation = (await params).operation;
     const identity = identityClient();
-    if (!identity) return fail(404);
-    const settings = identity.settings,
-      operation = (await params).operation;
+    if (!identity) return operation === 'refresh' ? noEffect() : fail(404);
+    const settings = identity.settings;
     if (request.headers.get('origin') !== settings.origin) return fail(403);
     const id = request.cookies.get(settings.sessionCookie)?.value ?? '';
     if (operation === 'refresh')
