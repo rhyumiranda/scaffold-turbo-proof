@@ -189,18 +189,18 @@ ac51() {
   # Documented pool maximum.
   grep -n -i 'at most five connections' "$WS/apps/api/docs/architecture.md" > "$f/documented-pool-max.txt"
   grep -q -i 'at most five' "$f/documented-pool-max.txt" || { ok=0; why="$why pool maximum is not documented;"; }
+  cp "$DRO_DIR/load.js" "$f/k6/load.js"
   export PGC; bash "$DRO_DIR/pgsample.sh" "$f/pg-connections-load.txt" 75 $STACK_DB & local sampler=$!
   sleep 2
   export URL="$API_DIRECT/v1/projects?limit=25"; export EV_ENV_NAMES="TOKEN URL"
+  local load_start load_end k6_rc sample_rc
+  load_start="$(date +%s.%N)"
   ev_run $ac k6-load -- docker run --rm --cpus=2 --memory=2g --network host -v "$f/k6":/k6 -e URL -e TOKEN \
-    "grafana/k6:1.3.0@sha256:3ddc8b1a33a2c3d8edc6e99b6a762ae36cba08788463458f5e6a7703e14eb77d" run --quiet --summary-export /k6/summary.json - < "$DRO_DIR/load.js"
-  wait "$sampler"
-  # k6 reads the script from stdin above only if given "-"; fall back to the mounted copy when that failed.
-  if [ ! -s "$f/k6/summary.json" ]; then
-    cp "$DRO_DIR/load.js" "$f/k6/load.js"
-    ev_run $ac k6-load-file -- docker run --rm --cpus=2 --memory=2g --network host -v "$f/k6":/k6 -e URL -e TOKEN \
-      "grafana/k6:1.3.0@sha256:3ddc8b1a33a2c3d8edc6e99b6a762ae36cba08788463458f5e6a7703e14eb77d" run --quiet --summary-export /k6/summary.json /k6/load.js
-  fi
+    "grafana/k6:1.3.0@sha256:3ddc8b1a33a2c3d8edc6e99b6a762ae36cba08788463458f5e6a7703e14eb77d" run --quiet --summary-export /k6/summary.json /k6/load.js
+  k6_rc=$?; load_end="$(date +%s.%N)"; printf '%s %s\n' "$load_start" "$load_end" > "$f/load-window.txt"
+  wait "$sampler"; sample_rc=$?
+  [ "$k6_rc" = 0 ] || { ok=0; why="$why k6 load exited $k6_rc;"; }
+  [ "$sample_rc" = 0 ] || { ok=0; why="$why connection sampler exited $sample_rc;"; }
   # Database latency of 5 s with 50 concurrent requests.
   export EV_ENV_NAMES="TOKEN API_URL"
   ev_run $ac warm -- bash "$DRO_DIR/ac51-latency.sh" "$f/latency" warm
@@ -217,7 +217,7 @@ ac51() {
   local after; after="$(curl -s -o /dev/null -w '%{http_code}' -H "authorization: Bearer $TOKEN" "$API_DIRECT/v1/projects?limit=1")"
   echo "after latency removed: $after" > "$f/recovery.txt"
   [ "$after" = 200 ] || { ok=0; why="$why API did not recover (status $after);"; }
-  if [ $ok = 1 ]; then verdict $ac PASS "200 VUs x 60 s: max $(jq -r .load_max_all "$f/analysis.stdout") DB connections (pool max 5); 5 s DB latency: 50/50 -> $(jq -c .latency_status_histogram "$f/analysis.stdout"), slowest $(jq -r .latency_max_seconds "$f/analysis.stdout") s (literal deadline 6 s, no slack)"; else verdict $ac FAIL "${why# }"; fi
+  if [ $ok = 1 ]; then verdict $ac PASS "200 VUs x 60 s: $(jq -r .load_overlap_samples "$f/analysis.stdout") overlapping samples, max $(jq -r .load_max_all "$f/analysis.stdout") DB connections (pool max 5); 5 s DB latency: 50/50 -> $(jq -c .latency_status_histogram "$f/analysis.stdout"), slowest $(jq -r .latency_max_seconds "$f/analysis.stdout") s (literal deadline 6 s, no slack)"; else verdict $ac FAIL "${why# }"; fi
 }
 
 # ---------- AC-50 ----------

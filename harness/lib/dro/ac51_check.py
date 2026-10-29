@@ -7,11 +7,18 @@ samples = []
 for line in open(f"{d}/pg-connections-load.txt"):
     p = line.split()
     if len(p) == 3 and p[1].isdigit(): samples.append((float(p[0]), int(p[1]), int(p[2])))
+try:
+    start, end = map(float, open(f"{d}/load-window.txt").read().split())
+    overlap = [s for s in samples if start <= s[0] <= end]
+except Exception as e:
+    overlap = []
+    bad(f"load window unreadable: {e}")
 res["load_samples"] = len(samples)
-res["load_max_all"] = max((s[1] for s in samples), default=None)
-res["load_max_api"] = max((s[2] for s in samples), default=None)
-if len(samples) < 50: bad(f"only {len(samples)} connection samples during the load run (need >= 50)")
-if samples and res["load_max_all"] > pool: bad(f"connections to the database reached {res['load_max_all']} (pool max {pool})")
+res["load_overlap_samples"] = len(overlap)
+res["load_max_all"] = max((s[1] for s in overlap), default=None)
+res["load_max_api"] = max((s[2] for s in overlap), default=None)
+if len(overlap) < 50: bad(f"only {len(overlap)} connection samples overlap the load run (need >= 50)")
+if overlap and res["load_max_all"] > pool: bad(f"connections to the database reached {res['load_max_all']} (pool max {pool})")
 try:
     k6 = json.load(open(f"{d}/k6/summary.json"))["metrics"]
     res["k6"] = {k: k6[k].get("count", k6[k].get("value")) for k in k6 if k.startswith("status_") or k == "http_reqs"}

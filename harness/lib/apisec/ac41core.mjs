@@ -73,9 +73,18 @@ const kcLogin = async (user, pass) => { await page.waitForSelector('#username', 
 await page.goto(BASE + '/auth/login'); await kcLogin('alice', env.ALICE_PASSWORD); await page.waitForURL(BASE + '/projects', { timeout: 20000 });
 const caps = {};
 page.on('request', async (rq) => { const aid = rq.headers()['next-action']; if (rq.method() === 'POST' && aid && !caps[aid]) caps[aid] = { url: rq.url(), headers: await rq.allHeaders(), body: rq.postDataBuffer(), rename: new URL(rq.url()).pathname.includes('/projects/') }; });
-async function viaForm(label, value, shouldCreate) {
+async function viaForm(label, value, shouldCreate, extraFields = []) {
   await page.goto(BASE + '/projects');
   await page.getByLabel('Project name').fill(value);
+  if (extraFields.length)
+    await page.getByLabel('Project name').evaluate((input, fields) => {
+      const form = input.form;
+      if (!form) throw new Error('Project name is not inside a form');
+      for (const [name, fieldValue] of fields) {
+        const input = document.createElement('input');
+        input.type = 'hidden'; input.name = name; input.value = fieldValue; form.append(input);
+      }
+    }, extraFields);
   await page.getByRole('button', { name: 'Create project' }).click();
   await page.getByRole('status').filter({ hasText: /\S/ }).waitFor({ timeout: 15000 }).catch(() => {});
   const status = (await page.getByRole('status').textContent().catch(() => '')) || '';
@@ -89,6 +98,10 @@ await viaForm('valid seed (captures the create action)', 'web-seed', true);
 await viaForm('name of 101 chars', 'a'.repeat(101), false);
 await viaForm('whitespace only', '   ', false);
 await viaForm('NUL byte', 'a\u0000b', false);
+await viaForm('unknown extra field', 'web-extra', false, [['extra', '1']]);
+await viaForm('10,000-level nested arrays as text', nested(10000), false);
+await viaForm('33 KB name', 'x'.repeat(33 * 1024), false);
+await viaForm('oversized pagination fields', 'web-pagination', false, [['limit', '100000'], ['offset', '-1']]);
 await viaForm('RTL override', RTL, true);
 await viaForm('emoji with ZWJ', EMOJI, true);
 // rename action: open the project page and save a name so the rename action id is captured
@@ -116,38 +129,60 @@ function craft(fields) {
   body += kept.map((p) => '--' + boundary + p).join('');
   return Buffer.concat([Buffer.from(body.replace(/\r\n$/, '') + '\r\n', 'latin1'), Buffer.from('--' + boundary + '--\r\n')]);
 }
+function withActionFormArgument(valueJson) {
+  const data = craft([['name', 'unused']]).toString('latin1');
+  const replaced = data.replace(
+    /(name="0"\r\n\r\n[^\r\n]*),"\$K\d+"\](\r\n)/,
+    (_, prefix, suffix) => prefix + ',' + valueJson + ']' + suffix,
+  );
+  if (replaced === data) throw new Error('Captured action arguments did not contain a form reference');
+  return Buffer.from(replaced, 'latin1');
+}
 async function direct(label, fields, raw, expect, ctype) {
   const data = raw ?? craft(fields.map(([k, v]) => [k, Buffer.from(v, 'utf8').toString('latin1')]));
   const r = await ctx.request.post(createAction.url, { headers: { ...hdrs, 'content-type': ctype ?? 'multipart/form-data; boundary=' + boundary }, data, maxRedirects: 0, timeout: 60000 });
-  const t = await r.text(); const result = (t.match(/\{"status":"(?:error|success)"[^}]*\}/) || [null])[0];
+  const t = await r.text();
+  let json; try { json = JSON.parse(t); } catch {}
+  const result = (t.match(/\{"status":"(?:error|success)"[^}]*\}/) || [json?.fieldError ? JSON.stringify(json) : null])[0];
   rows.push({ layer: 'web-action-direct', label, status: r.status(), result });
-  const fieldErr = result && /"status":"error"/.test(result);
+  const fieldErr = result && /"status":"error"/.test(result) && /"fieldError":"[^"]+"/.test(result);
   if (expect === 'ok') A.check(`web action endpoint ${label}: success`, r.status() === 200 && /"status":"success"/.test(result || ''), { status: r.status(), result });
-  else A.check(`web action endpoint ${label}: 4xx or inline field error, never 5xx`, r.status() < 500 && (r.status() >= 400 || fieldErr), { status: r.status(), result });
+  else A.check(`web action endpoint ${label}: inline field-error payload, never 5xx`, r.status() < 500 && fieldErr, { status: r.status(), result });
 }
 await direct('control valid', [['name', 'direct-ok']], undefined, 'ok');
 await direct('name of 101 chars', [['name', 'a'.repeat(101)]]);
 await direct('whitespace only', [['name', '   ']]);
 await direct('NUL byte', [['name', 'a\u0000b']]);
 await direct('missing name', []);
+await direct('wrong type: form argument is a number', [], withActionFormArgument('5'));
+await direct('wrong type: form argument is an object', [], withActionFormArgument('{"name":5}'));
+await direct('10,000-level nested arrays in action arguments', [], withActionFormArgument(nested(10000)));
+await direct('10,000-level nested arrays as form text', [['name', nested(10000)]]);
 await direct('two name fields', [['name', 'one'], ['name', 'two']]);
 await direct('unknown extra field and ownerId', [['name', 'direct-extra'], ['extra', '1'], ['ownerId', 'bob']]);
+await direct('oversized pagination fields', [['name', 'direct-pagination'], ['limit', '100000'], ['offset', '-1']]);
+await direct('33 KB name', [['name', 'x'.repeat(33 * 1024)]]);
 await direct('name of 900 KB', [['name', 'x'.repeat(900 * 1024)]]);
 await direct('name of 2 MB (over the 1 MB action limit)', [['name', 'x'.repeat(2 * 1024 * 1024)]]);
 await direct('garbage body', [], Buffer.from('not multipart at all'));
 await direct('RTL override', [['name', RTL]], undefined, 'ok');
 await direct('emoji with ZWJ', [['name', EMOJI]], undefined, 'ok');
+const afterDirect = await (await fetch(API + '/v1/projects?limit=100', { headers: H })).json();
+A.check('direct-action RTL and emoji names are stored and returned byte-for-byte',
+  afterDirect.filter((p) => p.name === RTL).length >= 2 && afterDirect.filter((p) => p.name === EMOJI).length >= 2,
+  { rtlCopies: afterDirect.filter((p) => p.name === RTL).length, emojiCopies: afterDirect.filter((p) => p.name === EMOJI).length });
 async function chunked(label, data, ctype) {
   const cookie = (await ctx.cookies(BASE)).map((c) => c.name + '=' + c.value).join('; ');
   const u = new URL(createAction.url);
   const res = await new Promise((resolve) => {
-    const rq = httpRequest({ host: '127.0.0.1', port: Number(u.port), path: u.pathname, method: 'POST', headers: { ...hdrs, host: u.host, cookie, 'content-type': ctype ?? 'multipart/form-data; boundary=' + boundary, 'transfer-encoding': 'chunked' } }, (r) => { let t = ''; r.on('data', (d) => (t += d)); r.on('end', () => resolve({ status: r.statusCode })); });
+    const rq = httpRequest({ host: '127.0.0.1', port: Number(u.port), path: u.pathname, method: 'POST', headers: { ...hdrs, host: u.host, cookie, 'content-type': ctype ?? 'multipart/form-data; boundary=' + boundary, 'transfer-encoding': 'chunked' } }, (r) => { let t = ''; r.on('data', (d) => (t += d)); r.on('end', () => resolve({ status: r.statusCode, body: t })); });
     rq.on('error', (e) => resolve({ status: 'socket-error ' + e.code })); rq.setTimeout(30000, () => rq.destroy());
     for (let i = 0; i < data.length; i += 65536) rq.write(data.subarray(i, i + 65536));
     rq.end();
   });
-  rows.push({ layer: 'web-action-direct', label, status: res.status });
-  A.check(`web action endpoint ${label}: 4xx (no content-length), never 5xx`, typeof res.status === 'number' && res.status >= 400 && res.status < 500, res);
+  let result; try { result = JSON.parse(res.body); } catch {}
+  rows.push({ layer: 'web-action-direct', label, status: res.status, result });
+  A.check(`web action endpoint ${label}: 4xx with field-error payload (no content-length), never 5xx`, typeof res.status === 'number' && res.status >= 400 && res.status < 500 && typeof result?.fieldError === 'string', res);
 }
 await chunked('name of 2 MB, chunked', craft([['name', 'x'.repeat(2 * 1024 * 1024)]]));
 await chunked('name of 900 KB, chunked', craft([['name', 'y'.repeat(900 * 1024)]]));

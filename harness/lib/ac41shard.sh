@@ -78,4 +78,14 @@ ac41_shard() {
   total=$(jq '.checks|length' "$f"); failed=$(jq '[.checks[]|select(.ok|not)]|length' "$f")
   if [ "$failed" = 0 ] && [ "$total" -gt 0 ]; then ac41_part "$SH" PASS "$total/$total checks passed; zero 5xx in API/web logs; every replay script exited 0 (EXIT-POLICY.md: no exceptions)"
   else ac41_part "$SH" FAIL "$failed/$total failed: $(jq -r '[.checks[]|select(.ok|not)|.label]|join("; ")' "$f" | cut -c1-500)"; fi
+  # One reviewer-facing file carries the literal rows, every gating assertion, the 5xx summary and replay exits.
+  # final.sh preserves this under the core shard instead of relying on files copied from different runners.
+  if [ "$SH" = core ]; then
+    python3 - "$A41/literal-evidence.json" "$A41/assert.json" "$A41/core-rows.json" "$A41/5xx-summary.json" "$A41/replay-exits.txt" "$RES/parts/AC-41-core.json" <<'PY'
+import json,sys
+out,asserts,rows,fives,exits,result=sys.argv[1:]
+with open(exits) as f: replay=[{"script":p[0],"exit":int(p[1])} for line in f if (p:=line.split())]
+json.dump({"ac":"AC-41","scope":"literal API, browser form and direct Server Action cases plus zero-5xx and replay gates","result":json.load(open(result)),"checks":json.load(open(asserts))["checks"],"rows":json.load(open(rows)),"fiveXxSummary":json.load(open(fives)),"replayExits":replay},open(out,"w"),indent=2)
+PY
+  fi
 }

@@ -85,8 +85,9 @@ if [ $ok11 = 1 ]; then verdict AC-11 PASS "Node 22 and pnpm 11 installs exit non
 ev_run AC-19 envmode -- jq .envMode turbo.json
 ev_run AC-19 dry-run-env -- bash -c "pnpm exec turbo run build --dry=json | jq '[.tasks[] | {taskId, env: .environmentVariables}]'"
 ev_run AC-19 global-env -- jq '{globalEnv, globalPassThroughEnv, tasks: (.tasks | with_entries(.value |= {env, passThroughEnv}))}' turbo.json
-# Variables the web build reads (next.config.ts and build scripts) must all be declared for @repo/web#build.
-ev_run AC-19 build-reads -- bash -c "grep -hoE 'process\\.env\\.[A-Z][A-Z0-9_]+|process\\.env\\[[\"'\\''][A-Z][A-Z0-9_]+' apps/web/next.config.ts apps/web/scripts/package.mjs | sed -E 's/.*[.\\[\"'\\'']//' | sort -u"
+# Variables the web build reads, including local helpers imported by next.config.ts, must all be declared for
+# @repo/web#build. deploymentSettings(env = process.env) is where this reference reads its deployment keys.
+ev_run AC-19 build-reads -- node "$HARNESS/lib/build-env-reads.mjs" apps/web/next.config.ts apps/web/scripts/package.mjs
 declared="$(jq -r '.[] | select(.taskId=="@repo/web#build") | .env | ((.specified.env // []) + (.specified.passThroughEnv // []) + (.inferred // [])) | .[]' "$EV/AC-19/dry-run-env.stdout" 2>/dev/null; jq -r '(.globalEnv // []) + (.globalPassThroughEnv // []) | .[]' turbo.json)"
 undeclared=""
 while read -r v; do [ -z "$v" ] && continue; echo "$declared" | grep -Eqx "$v|${v%%_*}_\\*" || undeclared="$undeclared $v"; done < "$EV/AC-19/build-reads.stdout"

@@ -1,5 +1,5 @@
 // AC-32: real OIDC sign-in through Keycloak's login page, create "Alpha", reload, token isolation.
-import { writeFileSync, readFileSync } from 'node:fs';
+import { writeFileSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { Asserts, env, OUT, chromium, kcLogin, attachRecorder, redisSession, JWT, sql, mint, decode } from './lib.mjs';
 const A = new Asserts('AC-32');
 const BASE = env.WEB, sink = { console: [], requests: [], responses: [] };
@@ -48,10 +48,11 @@ try {
   A.check("Alpha is owned by alice's Keycloak sub (API authorised with the Keycloak access token)", owner === sub, { ownerMatches: owner === sub });
   const apilog = readFileSync(env.API_LOG, 'utf8').split('\n').filter((l) => /"route":"\/v1\/projects"/.test(l) && /"method":"POST"/.test(l) && /"status":201/.test(l));
   A.check('API log shows POST /v1/projects 201', apilog.length > 0, { lines: apilog.length });
-  A.note('apiLogHasSubField', apilog.some((l) => l.includes(sub)));
+  A.check("API log shows the request with alice's Keycloak sub", apilog.some((l) => l.includes(sub)));
 } catch (e) { A.check('journey completed without exception', false, String(e.stack || e).slice(0, 400)); await page.screenshot({ path: OUT + '/error.png' }).catch(() => {}); }
 finally {
   await context.tracing.stop({ path: OUT + '/trace.zip' }); await context.close(); await browser.close();
   writeFileSync(OUT + '/console.json', JSON.stringify(sink.console, null, 1));
 }
+A.check('browser journey has a non-empty video', readdirSync(OUT + '/video').some((name) => name.endsWith('.webm') && statSync(OUT + '/video/' + name).size > 0));
 A.finish();

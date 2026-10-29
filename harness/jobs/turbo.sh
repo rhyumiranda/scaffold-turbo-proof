@@ -303,8 +303,8 @@ sum="$(last_summary)"; remote_ok=0
 if [ -n "$sum" ]; then cp "$sum" "$EV/AC-21/refetch.turbo-run.json"; tasks_tsv "$sum" "$EV/AC-21/refetch.tsv"; [ -s "$EV/AC-21/refetch.tsv" ] && [ -z "$(awk -F'\t' '$2!="HIT" || $3!="REMOTE"' "$EV/AC-21/refetch.tsv")" ] && remote_ok=1; fi
 ev_run AC-21 hash-after-refetch -- sha256sum apps/api/dist/main.js
 hash_api="$(jq -r '.tasks[] | select(.taskId=="@repo/api#build") | .hash' "$sum" 2>/dev/null)"
-art="$(find "$store" -type f -name "$hash_api*" 2>/dev/null | head -1)"
-if [ -n "$art" ]; then ev_run AC-21 byteflip -- sudo python3 -I "$HARNESS/infra/turbo/flip-byte.py" "$art"; flip=$?; else flip=1; echo "artifact for @repo/api#build ($hash_api) not found in store" > "$EV/AC-21/byteflip.missing"; fi
+art="$store/$TURBO_TEAM/$hash_api"
+if [ -f "$art" ]; then ev_run AC-21 byteflip -- sudo python3 -I "$HARNESS/infra/turbo/flip-byte.py" "$art"; flip=$?; else flip=1; echo "payload for @repo/api#build ($hash_api) not found at $art" > "$EV/AC-21/byteflip.missing"; fi
 ev_run AC-21 clear-local-3 -- bash -c 'rm -rf .turbo/cache apps/api/dist apps/web/.next && echo cleared'
 rm -rf "$WS/.turbo/runs"
 ev_run AC-21 tampered-refetch -- $TO pnpm exec turbo run build --summarize; tr_=$?
@@ -316,7 +316,7 @@ ev_run AC-21 server-logs -- docker logs acc-remote-cache
 tracked_clean AC-21 tracked-status; tc=$?
 docker rm -f acc-remote-cache >/dev/null 2>&1; unset TURBO_API TURBO_TEAM TURBO_TOKEN TURBO_REMOTE_CACHE_SIGNATURE_KEY EV_ENV_NAMES; rm -f "$WORK/.turbo-token" "$WORK/.turbo-sigkey"
 if [ $docs_ok = 1 ] && [ $ss21 = 0 ] && [ $sr = 0 ] && [ $up = 0 ] && [ $rf = 0 ] && [ $remote_ok = 1 ] && [ $flip = 0 ] && [ $tr_ = 0 ] && [ $tamper_ok = 1 ] && [ $tc = 0 ]; then
-  verdict AC-21 PASS "docs/operations.md documents TURBO_API/TEAM/TOKEN and the signature key, turbo.json remoteCache.signature true; signed upload then all tasks HIT from REMOTE; byte-flipped @repo/api#build artifact -> MISS, rebuilt, main.js hash identical; no tracked file edited"
+  verdict AC-21 PASS "docs/operations.md documents TURBO_API/TEAM/TOKEN and the signature key, turbo.json remoteCache.signature true; signed upload then all tasks HIT from REMOTE; byte-flipped @repo/api#build payload -> MISS, rebuilt, main.js hash identical; no tracked file edited"
 else
   verdict AC-21 FAIL "docs=$docs_ok server=$ss21 ready=$sr upload=$up refetch=$rf allRemoteHit=$remote_ok flip=$flip tamperedBuildExit=$tr_ apiStatusAfterTamper=$api_status outputCorrect=$tamper_ok trackedClean=$tc"
 fi

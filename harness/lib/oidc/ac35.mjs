@@ -55,8 +55,13 @@ try {
   const hdrs = Object.fromEntries(Object.entries(cap.headers).filter(([k]) => !['cookie', 'content-length', 'host'].includes(k)));
   const rr = await fetch(cap.url, { method: 'POST', headers: { ...hdrs, cookie: 'app_session=' + cookie }, body: Buffer.from(cap.body.toString('latin1').replace('AC35-capture', 'AC35-replay-after-logout'), 'latin1'), redirect: 'manual' });
   const rt = await rr.text(); const after = sql(env.DB, "SELECT count(*) FROM projects WHERE name='AC35-replay-after-logout'");
-  rows.push({ label: 'replay Server Action with old cookie', status: rr.status, result: (rt.match(/\{"status":"(?:error|success)"[^}]*\}/) || [null])[0] });
-  A.check('replayed Server Action with the old cookie is refused and writes nothing', before === after && after === '0' && !/"status":"success"/.test(rt) && rr.status < 500, { status: rr.status, before, after });
+  const actionRedirect = rr.headers.get('location') ?? rr.headers.get('x-action-redirect') ?? '';
+  rows.push({ label: 'replay Server Action with old cookie', status: rr.status, location: actionRedirect, result: (rt.match(/\{"status":"(?:error|success)"[^}]*\}/) || [null])[0] });
+  A.check(
+    'replayed Server Action with the old cookie gets a sign-in recovery redirect and writes nothing',
+    before === after && after === '0' && rr.status >= 300 && rr.status < 400 && /\/session-expired(?:\?|$)/.test(actionRedirect),
+    { status: rr.status, location: actionRedirect, before, after },
+  );
   // expiry
   const ctx2 = await browser.newContext(); const p2 = await ctx2.newPage();
   await p2.goto(BASE + '/auth/login'); await kcLogin(p2, 'alice', env.ALICE_PASSWORD); await p2.waitForURL(BASE + '/projects');
