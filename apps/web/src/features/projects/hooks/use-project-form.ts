@@ -1,6 +1,5 @@
 'use client';
 import { useActionState, useEffect, useRef, useState } from 'react';
-import { usePathname } from 'next/navigation';
 import { createAction, renameAction } from '../actions/projects';
 import type { MutationState, Project } from '../services/types';
 type Draft = { value: string; baseline: string; version: number; revision: number };
@@ -55,9 +54,6 @@ export function useProjectForm(project: Project | undefined, scope: string) {
     { status: 'idle', message: '' },
   );
   const input = useRef<HTMLInputElement>(null);
-  // Sign-in opens in a new tab so the unsaved input on this page survives; the user then saves again here.
-  const pathname = usePathname();
-  const signInHref = state.signIn ? '/auth/login?returnTo=' + encodeURIComponent(pathname) : undefined;
   useEffect(() => {
     if (state.fieldError) input.current?.focus();
   }, [state]);
@@ -118,7 +114,6 @@ export function useProjectForm(project: Project | undefined, scope: string) {
     submit,
     pending,
     input,
-    signInHref,
     value: draft.value,
     version: draft.version,
     change: (value: string) => update({ ...current.current, value, revision: current.current.revision + 1 }),

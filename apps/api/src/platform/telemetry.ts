@@ -69,10 +69,18 @@ export function requestTelemetry(request: Request, response: Response, next: Nex
     span.setAttributes(attrs);
     if (status >= 500) span.setStatus({ code: SpanStatusCode.ERROR });
     const durationMs = Math.round(performance.now() - started);
+    const subject = (request as Request & { identity?: { subject?: unknown } }).identity?.subject;
     context.with(active, () => {
       requests.add(1, attrs);
       duration.record(durationMs, attrs);
-      logEvent('request.complete', { requestId, method: request.method, route, status, durationMs });
+      logEvent('request.complete', {
+        requestId,
+        method: request.method,
+        route,
+        status,
+        durationMs,
+        ...(typeof subject === 'string' ? { subject } : {}),
+      });
     });
     span.end();
   };

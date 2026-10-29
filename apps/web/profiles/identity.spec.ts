@@ -24,8 +24,8 @@ test('OIDC sign-in, persisted change, CSRF rejection, refresh and logout invalid
   expect((await page.request.post('/auth/refresh', { headers: { origin: process.env.WEB_TEST_URL! } })).status()).toBe(
     204,
   );
-  // The session ends while the form is open (for example, signed out in another tab). Saving keeps the input and
-  // offers sign-in in a new tab; after signing in there, saving here works.
+  // The session ends while the form is open (for example, signed out in another tab). Saving redirects to a safe
+  // recovery page; sign-in happens in a new tab and client navigation restores the in-memory draft.
   expect(
     (
       await page.request.post('/auth/logout', { headers: { origin: process.env.WEB_TEST_URL! }, maxRedirects: 0 })
@@ -34,13 +34,15 @@ test('OIDC sign-in, persisted change, CSRF rejection, refresh and logout invalid
   const kept = 'Kept after expiry ' + Date.now();
   await page.getByLabel('Project name').fill(kept);
   await page.getByRole('button', { name: 'Create project' }).click();
-  await expect(page.getByRole('status')).toContainText('Your session expired');
-  await expect(page.getByLabel('Project name')).toHaveValue(kept);
+  await expect(page).toHaveURL(/\/session-expired\?returnTo=%2Fprojects$/);
+  await expect(page.getByRole('heading', { name: 'Session expired', exact: true })).toBeVisible();
   const signInTab = context.waitForEvent('page');
   await page.getByRole('link', { name: 'Sign in again (opens a new tab)' }).click();
   const tab = await signInTab;
   await expect(tab.getByRole('heading', { name: 'Projects', exact: true })).toBeVisible();
   await tab.close();
+  await page.getByRole('link', { name: 'Return to your draft' }).click();
+  await expect(page.getByLabel('Project name')).toHaveValue(kept);
   await page.getByRole('button', { name: 'Create project' }).click();
   await expect(page.getByRole('status')).toContainText('Project created.');
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();

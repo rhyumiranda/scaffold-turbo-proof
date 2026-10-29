@@ -27,6 +27,4 @@ export type MutationState = {
   inputValue?: string;
   createdId?: string;
   savedVersion?: number;
-  // True when a fresh sign-in fixes the failure (an expired session in OIDC mode).
-  signIn?: boolean;
 };

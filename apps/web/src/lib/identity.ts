@@ -6,22 +6,12 @@ import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 export { identitySettings } from '../../scripts/runtime-config.mjs';
 import { identitySettings } from '../../scripts/runtime-config.mjs';
 import { homePath } from './feature-routes.mjs';
+import { safeReturnTo } from './safe-return-to.mjs';
 import { openTransaction, sealTransaction, transactionKey, TransactionError } from './transaction-cookie.mjs';
+export { safeReturnTo } from './safe-return-to.mjs';
 type Settings = NonNullable<ReturnType<typeof identitySettings>>;
 type Session = { accessToken: string; refreshToken?: string; expires: number; until: number; subject: string };
 const opaque = () => randomBytes(32).toString('base64url');
-// Where to land after sign-in: only a same-origin path, never another host, scheme or protocol-relative URL.
-export function safeReturnTo(value: string | null | undefined, origin: string): string {
-  if (!value || !value.startsWith('/') || value.startsWith('//') || value.startsWith('/\\') || value.length > 512)
-    return homePath;
-  try {
-    const url = new URL(value, origin);
-    if (url.origin !== origin || url.pathname.startsWith('/auth/')) return homePath;
-    return url.pathname + url.search;
-  } catch {
-    return homePath;
-  }
-}
 const validId = (id: string) => /^[a-zA-Z0-9_-]{43}$/.test(id);
 const same = (a: string, b: string) => {
   const left = Buffer.from(a),

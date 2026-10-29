@@ -6,7 +6,10 @@ const MAX_BODY_BYTES = 1024 * 1024;
 const readOnly = new Set(['GET', 'HEAD', 'OPTIONS']);
 
 function reject(status: number, error: string) {
-  return NextResponse.json({ error }, { status, headers: { 'cache-control': 'no-store' } });
+  return NextResponse.json(
+    { error, status: 'error', message: error, fieldError: error },
+    { status, headers: { 'cache-control': 'no-store' } },
+  );
 }
 
 // True when the browser-sent Origin is this app. In OIDC mode the full origin is configured. Otherwise compare hosts
