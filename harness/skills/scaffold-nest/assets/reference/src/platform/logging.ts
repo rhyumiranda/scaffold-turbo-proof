@@ -14,6 +14,7 @@ type Fields = {
   errorType?: string;
   signal?: string;
   route?: string;
+  subject?: string;
 };
 // The same name is the telemetry service.name, so logs and traces from one service match.
 const configuredService = process.env.OTEL_SERVICE_NAME ?? '';

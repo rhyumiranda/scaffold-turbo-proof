@@ -46,6 +46,7 @@ test('crafted Server Action requests are rejected with 400, never 500', async ({
   for (const data of ['null', '"text"', '[', '["$F1"]']) {
     const response = await request.post('/projects', { headers: { ...headers, 'content-type': 'text/plain' }, data });
     expect(response.status(), `text/plain ${data}`).toBe(400);
+    expect(await response.json()).toMatchObject({ status: 'error', fieldError: expect.any(String) });
   }
   for (const zero of ['null', '[', '["$F1","$K1"]', '["$@1","$K1"]', '[{"x":"$Q1"},"$K1"]']) {
     const response = await request.post('/projects', { headers, multipart: { '0': zero, '1_name': 'x' } });

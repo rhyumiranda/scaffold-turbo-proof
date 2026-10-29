@@ -1,5 +1,6 @@
 'use server';
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { ApiError, createProject, renameProject } from '../services/projects.server';
 import { nameSchema, type MutationState } from '../services/types';
@@ -8,9 +9,7 @@ const oidc = process.env.AUTH_MODE === 'oidc';
 function failure(error: unknown): MutationState {
   const status = error instanceof ApiError ? error.status : 500;
   const known: Record<number, string> = {
-    401: oidc
-      ? 'Your session expired. Sign in again in a new tab, then save here; your input has been kept.'
-      : 'Your session expired. Sign in again, then save here; your input has been kept.',
+    401: 'Your session expired. Sign in again, then save here; your input has been kept.',
     404: 'Project not found.',
     409: 'This project changed since you opened it. Reload the page, then save again.',
     429: 'Too many requests. Wait a moment, then try again.',
@@ -19,7 +18,11 @@ function failure(error: unknown): MutationState {
   const message =
     known[status] ??
     'The service did not confirm the save. It may have been saved: reload before trying again. Your input has been kept.';
-  return { status: 'error', message, fieldError: message, ...(status === 401 && oidc ? { signIn: true } : {}) };
+  return { status: 'error', message, fieldError: message };
+}
+function recoverSession(returnTo: string, error: unknown) {
+  if (oidc && error instanceof ApiError && error.status === 401)
+    redirect('/session-expired?returnTo=' + encodeURIComponent(returnTo));
 }
 // Only the fields this action reads (plus Next.js's own $ACTION_* fields) are accepted.
 function unexpectedField(form: FormData, allowed: string[]) {
@@ -44,6 +47,7 @@ export async function createAction(_previous: MutationState, form: FormData): Pr
   try {
     created = await createProject(parsed.data);
   } catch (error) {
+    recoverSession('/projects', error);
     return { ...failure(error), inputValue };
   }
   revalidatePath('/projects');
@@ -72,6 +76,7 @@ export async function renameAction(id: string, _previous: MutationState, form: F
   try {
     saved = await renameProject(parsed.data.id, parsed.data.name, parsed.data.expectedVersion);
   } catch (error) {
+    recoverSession('/projects/' + parsed.data.id, error);
     return { ...failure(error), inputValue };
   }
   revalidatePath('/projects');

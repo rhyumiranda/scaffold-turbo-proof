@@ -2,7 +2,7 @@
 import { useProjectForm } from '../hooks/use-project-form';
 import type { Project } from '../services/types';
 export function ProjectForm({ project, draftScope }: { project?: Project; draftScope: string }) {
-  const { state, submit, pending, input, signInHref, value, version, change } = useProjectForm(project, draftScope);
+  const { state, submit, pending, input, value, version, change } = useProjectForm(project, draftScope);
   return (
     <form action={submit} noValidate>
       <label htmlFor="project-name">Project name</label>
@@ -29,11 +29,6 @@ export function ProjectForm({ project, draftScope }: { project?: Project; draftS
       <p role="status" aria-live="polite">
         {state.message}
       </p>
-      {signInHref && (
-        <a href={signInHref} target="_blank" rel="noopener">
-          Sign in again (opens a new tab)
-        </a>
-      )}
       {state.createdId && (
         <a data-project-navigation href={'/projects/' + state.createdId}>
           Open created project

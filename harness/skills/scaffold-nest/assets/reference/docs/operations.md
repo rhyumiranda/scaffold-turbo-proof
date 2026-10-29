@@ -12,7 +12,7 @@ With a confirmed disposable database: `NODE_ENV=test npm run test:unit`, `NODE_E
 
 ## Runtime signals
 
-GET /health/live reports the process; GET /health/ready probes PostgreSQL and returns 503 during dependency failure. Structured JSON logs identify startup, failure, request completion and shutdown. Correlate request ID and W3C trace ID; neither grants authority. Unknown errors expose only a safe code publicly, while internal logs/spans retain safe category/SQLSTATE, not raw messages.
+GET /health/live reports the process; GET /health/ready probes PostgreSQL and returns 503 during dependency failure. Structured JSON logs identify startup, failure, request completion and shutdown. Authenticated completion records include the verified OIDC subject for authorization auditing; treat it as a personal identifier and restrict log access and retention. Correlate request ID and W3C trace ID; neither grants authority. Unknown errors expose only a safe code publicly, while internal logs/spans retain safe category/SQLSTATE, not raw messages.
 
 TELEMETRY_EXPORTER defaults to `none`, so stdout carries only JSON log lines; `console` prints raw spans for local debugging and is not JSON. Set `otlp` plus OTEL_EXPORTER_OTLP_ENDPOINT for an authorized HTTPS or local collector; `none` is an explicit opt-out. Exporters have bounded timeouts. Do not place credentials in endpoint URLs. Add collector-specific auth through its supported environment configuration and secret store. No public metrics endpoint is exposed.
 
