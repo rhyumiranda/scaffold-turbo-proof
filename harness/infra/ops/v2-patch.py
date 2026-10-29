@@ -19,6 +19,6 @@ edit(
 )
 edit(
     'apps/api/src/projects/repository.ts',
-    '        data: { name, version: { increment: 1 } },',
-    '        data: { name, version: { increment: 1 }, renamedAt: new Date() },',
+    '      SET "name" = ${name}, "version" = "version" + 1',
+    '      SET "name" = ${name}, "version" = "version" + 1, "renamed_at" = ${new Date()}',
 )

@@ -18,5 +18,9 @@ run('AC-70', async () => {
   check('session cookie obtained', Boolean(cookie));
   fs.writeFileSync(process.env.LH_HEADERS, JSON.stringify({ Cookie: `${cookie.name}=${cookie.value}` }), { mode: 0o600 });
   await page.goto(BASE + '/projects');
-  check('authenticated /projects lists the 20 items', (await page.locator('main li').count()) === 20);
+  try {
+    await page.waitForFunction(() => document.querySelectorAll('main li').length === 20, null, { timeout: 10_000 });
+  } catch {}
+  const rendered = await page.locator('main li').count();
+  check('authenticated /projects lists the 20 items', rendered === 20, String(rendered));
 });
