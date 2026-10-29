@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
-import { ApiError, ProjectForm, readProject, projectDraftScope, ProjectLink } from '@/features/projects';
+import { ApiError, ProjectForm, ProjectNavigation, readProject, projectDraftScope } from '@/features/projects';
 import type { Metadata } from 'next';
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -28,7 +28,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           {process.env.AUTH_MODE === 'oidc' ? (
             <a href={'/auth/login?returnTo=' + encodeURIComponent('/projects/' + id)}>Sign in</a>
           ) : (
-            <ProjectLink href="/projects">Return to projects</ProjectLink>
+            <a href="/projects">Return to projects</a>
           )}
         </>
       );
@@ -37,7 +37,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const draftScope = await projectDraftScope();
   return (
     <>
-      <ProjectLink href="/projects">All projects</ProjectLink>
+      <ProjectNavigation key={id} />
+      <a data-project-navigation href="/projects">
+        All projects
+      </a>
       <h1>{project.name}</h1>
       <ProjectForm key={draftScope + id} draftScope={draftScope} project={project} />
     </>
