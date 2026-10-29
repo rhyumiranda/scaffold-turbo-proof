@@ -12,6 +12,9 @@ edit('apps/api/src/app.ts', [
     ("    ProjectsModule,\n", ''),
     ("setTitle('Projects reference')", "setTitle('Acme API')"),
 ])
+edit('apps/web/package.json', [
+    (' scripts/projects-navigation.test.mjs', ''),
+])
 edit('apps/web/src/lib/feature-routes.mjs', [
     ("export const homePath = '/projects';", "export const homePath = '/';"),
     ("export const privatePaths = [/^\\/projects(\\/|$)/];", "export const privatePaths = [];"),

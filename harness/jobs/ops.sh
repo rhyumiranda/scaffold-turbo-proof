@@ -347,7 +347,7 @@ git -C "$WS" -c user.name=harness -c user.email=harness@invalid commit -qm "test
 git -C "$WS" show --stat HEAD > "$EV/AC-90/removal.stat"
 for c in check:workspace boundaries format:check check:secrets check:docs lint check:arch typecheck build test:unit contract:check check:budget; do
   l="${c//:/_}"
-  ev_run AC-90 "ac12-$l" -- pnpm "$c" || { ok90=0; why90="$why90 $c=exit$?;"; }
+  ev_run AC-90 "ac12-$l" -- pnpm "$c" || { ec=$?; ok90=0; why90="$why90 $c=exit$ec;"; }
 done
 back_to_target || { ok90=0; why90="$why90 workspace not back on target commit;"; }
 git -C "$WS" branch -q -D throwaway/ac90-remove-example
