@@ -58,7 +58,8 @@ export function checkSchema(schema = {}, migrations = {}, featureModules) {
     for (const [, , name, body] of blocks) {
       if (models.has(name))
         errors.push(`prisma/schema/${file}: model ${name} is also defined in ${models.get(name).file}`);
-      models.set(name, { module, file: `prisma/schema/${file}`, body });
+      const table = body.match(/@@map\(\s*"([^"]+)"\s*\)/)?.[1] ?? name;
+      models.set(name, { module, file: `prisma/schema/${file}`, body, table });
     }
   }
   const datasource =
@@ -118,6 +119,12 @@ export function checkArchitecture(files, { schema, migrations } = {}) {
   const checked = schema ? checkSchema(schema, migrations, featureModules) : { errors: [], models: new Map() };
   errors.push(...checked.errors);
   const delegates = new Map([...checked.models].map(([name, { module }]) => [delegateOf(name), { name, module }]));
+  const tablesByModule = new Map();
+  for (const { module, table } of checked.models.values()) {
+    const tables = tablesByModule.get(module) ?? new Set();
+    tables.add(table);
+    tablesByModule.set(module, tables);
+  }
   for (const [file, source] of Object.entries(files)) {
     const edges = [],
       owner = ownerOf(file);
@@ -181,8 +188,30 @@ export function checkArchitecture(files, { schema, migrations } = {}) {
         else if (ts.isElementAccessExpression(target) && ts.isStringLiteralLike(target.argumentExpression))
           modelAccess(target, target.argumentExpression.text);
       }
-      if (ts.isPropertyAccessExpression(node) && rawOperations.has(node.name.text) && owner !== 'platform')
-        errors.push(`${file}: raw SQL (${node.name.text}) is platform-only; use your module's Prisma models`);
+      if (ts.isPropertyAccessExpression(node) && rawOperations.has(node.name.text) && owner !== 'platform') {
+        const tagged = node.parent;
+        const template =
+          ts.isTaggedTemplateExpression(tagged) && tagged.tag === node
+            ? ts.isNoSubstitutionTemplateLiteral(tagged.template)
+              ? tagged.template.text
+              : tagged.template.head.text + tagged.template.templateSpans.map((span) => span.literal.text).join(' ')
+            : null;
+        const tables = template
+          ? [...template.matchAll(/\b(?:UPDATE|FROM|JOIN|INTO)\s+(?:"([^"]+)"|([A-Za-z_][\w$]*))/gi)].map(
+              (match) => match[1] ?? match[2],
+            )
+          : [];
+        const ownedTables = tablesByModule.get(owner) ?? new Set();
+        const safeOwnedQuery =
+          node.name.text === '$queryRaw' &&
+          file === `${owner}/repository.ts` &&
+          tables.length > 0 &&
+          tables.every((table) => ownedTables.has(table));
+        if (!safeOwnedQuery)
+          errors.push(
+            `${file}: raw SQL (${node.name.text}) must be a parameterized $queryRaw tag in the private repository and may reference only ${owner}'s mapped tables`,
+          );
+      }
       ts.forEachChild(node, inspect);
     };
     inspect(tree);

@@ -26,11 +26,14 @@ export class ProjectsRepository {
   }
   // Optimistic concurrency in one statement: the row changes only while it still has the expected version.
   async renameIfVersion(ownerId: string, id: string, name: string, version: number): Promise<RenamedProjectRow | null> {
-    const [renamed] = await this.db.client.project.updateManyAndReturn({
-      where: { id, ownerId, version },
-      data: { name, version: { increment: 1 } },
-      select: { id: true, name: true, version: true },
-    });
+    // The tagged query stays parameterized. Unlike Prisma's bulk mutation helpers, it does not add transaction
+    // control round trips, so a delayed database can still finish this single write inside the request deadline.
+    const [renamed] = await this.db.client.$queryRaw<RenamedProjectRow[]>`
+      UPDATE "projects"
+      SET "name" = ${name}, "version" = "version" + 1
+      WHERE "id" = ${id}::uuid AND "owner_id" = ${ownerId} AND "version" = ${version}
+      RETURNING "id", "name", "version"
+    `;
     return renamed ?? null;
   }
 }

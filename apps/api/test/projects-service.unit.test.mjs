@@ -15,14 +15,15 @@ function fakeDatabase(result = () => row) {
     calls.push({ operation, args });
     const value = result(operation, calls.length);
     if (operation === 'findMany') return value ? [value] : [];
-    if (operation === 'updateManyAndReturn')
-      return value ? [{ id: value.id, name: args.data.name, version: args.where.version + 1 }] : [];
     return value;
   };
-  const project = Object.fromEntries(
-    ['create', 'findMany', 'findFirst', 'updateManyAndReturn'].map((name) => [name, record(name)]),
-  );
-  return { calls, db: { client: { project } } };
+  const project = Object.fromEntries(['create', 'findMany', 'findFirst'].map((name) => [name, record(name)]));
+  const $queryRaw = async (strings, ...values) => {
+    calls.push({ operation: '$queryRaw', strings: [...strings], values });
+    const value = result('$queryRaw', calls.length);
+    return value ? [{ id: value.id, name: values[0], version: values[3] + 1 }] : [];
+  };
+  return { calls, db: { client: { project, $queryRaw } } };
 }
 test('application operations scope identity and minimize output without HTTP', async () => {
   const { calls, db } = fakeDatabase();
@@ -43,13 +44,12 @@ test('application operations scope identity and minimize output without HTTP', a
   await service.read('alice', row.id);
   assert.deepEqual(calls[2].args.where, { id: row.id, ownerId: 'alice' });
   const saved = await service.rename('alice', row.id, 'New', 1);
-  assert.deepEqual(calls[3].args.where, { id: row.id, ownerId: 'alice', version: 1 });
-  assert.deepEqual(calls[3].args.data, { name: 'New', version: { increment: 1 } });
-  assert.deepEqual(calls[3].args.select, { id: true, name: true, version: true });
+  assert.match(calls[3].strings.join(' ? '), /UPDATE "projects"[\s\S]*RETURNING "id", "name", "version"/);
+  assert.deepEqual(calls[3].values, ['New', row.id, 'alice', 1]);
   assert.deepEqual(Object.keys(saved).sort(), ['id', 'name', 'version']);
   assert.equal(saved.name, 'New');
   assert.equal(saved.version, 2);
-  for (const call of calls) assert.ok(!('ownerId' in (call.args.select ?? {})), 'owner never selected');
+  for (const call of calls) assert.ok(!('ownerId' in (call.args?.select ?? {})), 'owner never selected');
 });
 test('rename distinguishes an owned version conflict from an inaccessible record', async () => {
   for (const readable of [false, true]) {
@@ -61,7 +61,7 @@ test('rename distinguishes an owned version conflict from an inaccessible record
     );
     assert.deepEqual(
       calls.map((call) => call.operation),
-      ['updateManyAndReturn', 'findFirst'],
+      ['$queryRaw', 'findFirst'],
     );
   }
 });
@@ -69,7 +69,7 @@ test('rename distinguishes an owned version conflict from an inaccessible record
 test('rename rethrows database failures other than a missing conditional row', async () => {
   const failure = Object.assign(new Error('connection failed'), { code: 'P1001' });
   const { db } = fakeDatabase((operation) => {
-    if (operation === 'updateManyAndReturn') throw failure;
+    if (operation === '$queryRaw') throw failure;
     return row;
   });
   const service = new ProjectsService(new ProjectsRepository(db));

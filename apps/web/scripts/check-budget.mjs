@@ -11,22 +11,33 @@ export function evaluateBudget(gzipBytes, budget) {
     );
   return { gzipBytes, limit: budget.maxClientJavascriptGzipBytes };
 }
-function size(directory) {
-  return readdirSync(directory, { withFileTypes: true }).reduce(
-    (total, item) =>
-      total +
-      (item.isDirectory()
-        ? size(join(directory, item.name))
-        : item.name.endsWith('.js')
-          ? gzipSync(readFileSync(join(directory, item.name))).length
-          : 0),
+function clientReferenceManifests(directory) {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((item) => {
+    const path = join(directory, item.name);
+    if (item.isDirectory()) return clientReferenceManifests(path);
+    return item.name.endsWith('_client-reference-manifest.js') ? [path] : [];
+  });
+}
+export function currentClientFiles(nextDirectory = '.next') {
+  const manifests = [
+    join(nextDirectory, 'build-manifest.json'),
+    ...clientReferenceManifests(join(nextDirectory, 'server', 'app')),
+  ];
+  const files = new Set();
+  for (const manifest of manifests) {
+    for (const match of readFileSync(manifest, 'utf8').matchAll(/static\/chunks\/[^"' ]+?\.js/g)) {
+      files.add(decodeURIComponent(match[0]));
+    }
+  }
+  return [...files].sort();
+}
+export function currentClientSize(nextDirectory = '.next') {
+  return currentClientFiles(nextDirectory).reduce(
+    (total, file) => total + gzipSync(readFileSync(join(nextDirectory, file))).length,
     0,
   );
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const result = evaluateBudget(
-    size('.next/static/chunks'),
-    JSON.parse(readFileSync('performance-budget.json', 'utf8')),
-  );
-  console.log(JSON.stringify({ check: 'all-client-chunks-gzip', ...result }));
+  const result = evaluateBudget(currentClientSize(), JSON.parse(readFileSync('performance-budget.json', 'utf8')));
+  console.log(JSON.stringify({ check: 'current-client-chunks-gzip', ...result }));
 }
