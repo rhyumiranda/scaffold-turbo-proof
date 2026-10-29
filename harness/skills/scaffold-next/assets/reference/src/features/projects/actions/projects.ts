@@ -22,7 +22,7 @@ function failure(error: unknown): MutationState {
 }
 function recoverSession(returnTo: string, error: unknown) {
   if (oidc && error instanceof ApiError && error.status === 401)
-    redirect('/session-expired?returnTo=' + encodeURIComponent(returnTo));
+    redirect('/auth/login?returnTo=' + encodeURIComponent(returnTo));
 }
 // Only the fields this action reads (plus Next.js's own $ACTION_* fields) are accepted.
 function unexpectedField(form: FormData, allowed: string[]) {

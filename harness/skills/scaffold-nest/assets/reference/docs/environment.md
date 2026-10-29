@@ -25,4 +25,4 @@ Every variable the API reads. The process validates them before it listens and e
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | when `TELEMETRY_EXPORTER=otlp` | — | no | Collector URL. `https:` except on loopback; no credentials in the URL. |
 | `OTEL_SERVICE_NAME` | no | `api` | no | `service` field in logs and `service.name` in telemetry. |
 
-The migration job (`scripts/migrate.mjs`, which runs `prisma migrate deploy`) reads `DATABASE_URL`; give it a migration-only credential. The migrate image also sets `PRISMA_SCHEMA_ENGINE_BINARY` to the schema engine it carries, so it never downloads anything. `prisma.config.ts` reads `DATABASE_URL` only for the Prisma CLI; `prisma generate` needs no database.
+The migration job (`scripts/migrate.mjs`, which runs `prisma migrate deploy`) reads `DATABASE_URL`; give it a migration-only credential. The migrate image also sets `PRISMA_SCHEMA_ENGINE_BINARY` to the schema engine it carries, so it never downloads anything. Runtime Prisma commands use `prisma.config.ts`; builds use `prisma.generate.config.ts`, because client generation needs no database and must not vary with a runtime credential.

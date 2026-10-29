@@ -58,8 +58,8 @@ try {
   const actionRedirect = rr.headers.get('location') ?? rr.headers.get('x-action-redirect') ?? '';
   rows.push({ label: 'replay Server Action with old cookie', status: rr.status, location: actionRedirect, result: (rt.match(/\{"status":"(?:error|success)"[^}]*\}/) || [null])[0] });
   A.check(
-    'replayed Server Action with the old cookie gets a sign-in recovery redirect and writes nothing',
-    before === after && after === '0' && rr.status >= 300 && rr.status < 400 && /\/session-expired(?:\?|$)/.test(actionRedirect),
+    'replayed Server Action with the old cookie gets a direct sign-in redirect and writes nothing',
+    before === after && after === '0' && rr.status >= 300 && rr.status < 400 && /\/auth\/login(?:\?|$)/.test(actionRedirect),
     { status: rr.status, location: actionRedirect, before, after },
   );
   // expiry

@@ -85,12 +85,16 @@ if [ $ok11 = 1 ]; then verdict AC-11 PASS "Node 22 and pnpm 11 installs exit non
 ev_run AC-19 envmode -- jq .envMode turbo.json
 ev_run AC-19 dry-run-env -- bash -c "pnpm exec turbo run build --dry=json | jq '[.tasks[] | {taskId, env: .environmentVariables}]'"
 ev_run AC-19 global-env -- jq '{globalEnv, globalPassThroughEnv, tasks: (.tasks | with_entries(.value |= {env, passThroughEnv}))}' turbo.json
-# Variables the web build reads, including local helpers imported by next.config.ts, must all be declared for
-# @repo/web#build. deploymentSettings(env = process.env) is where this reference reads its deployment keys.
-ev_run AC-19 build-reads -- node "$HARNESS/lib/build-env-reads.mjs" apps/web/next.config.ts apps/web/scripts/package.mjs
-declared="$(jq -r '.[] | select(.taskId=="@repo/web#build") | .env | ((.specified.env // []) + (.specified.passThroughEnv // []) + (.inferred // [])) | .[]' "$EV/AC-19/dry-run-env.stdout" 2>/dev/null; jq -r '(.globalEnv // []) + (.globalPassThroughEnv // []) | .[]' turbo.json)"
+# Variables each app build reads, including local imported helpers and Prisma's config, must be declared for that
+# app's build task. Package-level turbo.json files are included in Turbo's dry-run resolved environment.
+ev_run AC-19 build-reads-web -- node "$HARNESS/lib/build-env-reads.mjs" apps/web/next.config.ts apps/web/scripts/package.mjs
+ev_run AC-19 build-reads-api -- node "$HARNESS/lib/build-env-reads.mjs" apps/api/prisma.generate.config.ts
+global_declared="$(jq -r '(.globalEnv // []) + (.globalPassThroughEnv // []) | .[]' turbo.json)"
+web_declared="$(jq -r '.[] | select(.taskId=="@repo/web#build") | .env | ((.specified.env // []) + (.specified.passThroughEnv // []) + (.inferred // [])) | .[]' "$EV/AC-19/dry-run-env.stdout" 2>/dev/null; echo "$global_declared")"
+api_declared="$(jq -r '.[] | select(.taskId=="@repo/api#build") | .env | ((.specified.env // []) + (.specified.passThroughEnv // []) + (.inferred // [])) | .[]' "$EV/AC-19/dry-run-env.stdout" 2>/dev/null; echo "$global_declared")"
 undeclared=""
-while read -r v; do [ -z "$v" ] && continue; echo "$declared" | grep -Eqx "$v|${v%%_*}_\\*" || undeclared="$undeclared $v"; done < "$EV/AC-19/build-reads.stdout"
+while read -r v; do [ -z "$v" ] && continue; echo "$web_declared" | grep -Eqx "$v|${v%%_*}_\\*" || undeclared="$undeclared web:$v"; done < "$EV/AC-19/build-reads-web.stdout"
+while read -r v; do [ -z "$v" ] && continue; echo "$api_declared" | grep -Eqx "$v|${v%%_*}_\\*" || undeclared="$undeclared api:$v"; done < "$EV/AC-19/build-reads-api.stdout"
 mode="$(tr -d '"\n' < "$EV/AC-19/envmode.stdout")"
 # Throwaway branch: a page renders an undeclared NEXT_PUBLIC_ value.
 git -C "$WS" switch -q -c throwaway/ac19
@@ -105,7 +109,7 @@ lint_named=0; [ "$tl" != 0 ] && grep -q NEXT_PUBLIC_UNDECLARED "$EV/AC-19/throwa
 sentinel_absent=0; [ "$tb" = 0 ] && [ ! -s "$EV/AC-19/sentinel-grep.stdout" ] && sentinel_absent=1
 git -C "$WS" switch -q --detach "$TARGET_SHA" && git -C "$WS" branch -q -D throwaway/ac19 && rm -rf "$WS/apps/web/src/app/ac19"
 if [ "$mode" = strict ] && [ -z "$undeclared" ] && { [ $lint_named = 1 ] || [ $sentinel_absent = 1 ]; }; then
-  verdict AC-19 PASS "envMode strict; every web build read declared; throwaway: lintNamesVar=$lint_named sentinelAbsentFromBuild=$sentinel_absent"
+  verdict AC-19 PASS "envMode strict; every web and API build read declared; throwaway: lintNamesVar=$lint_named sentinelAbsentFromBuild=$sentinel_absent"
 else
   verdict AC-19 FAIL "envMode=$mode undeclared=[${undeclared# }] lintNamesVar=$lint_named sentinelAbsent=$sentinel_absent (build exit $tb)"
 fi

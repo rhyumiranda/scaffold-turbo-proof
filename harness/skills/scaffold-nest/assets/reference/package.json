@@ -8,11 +8,11 @@
     "node": ">=24.22.1 <25"
   },
   "scripts": {
-    "build": "prisma generate && tsc -p tsconfig.json",
-    "typecheck": "prisma generate && tsc --noEmit",
+    "build": "prisma generate --config prisma.generate.config.ts && tsc -p tsconfig.json",
+    "typecheck": "prisma generate --config prisma.generate.config.ts && tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
     "start": "node dist/main.js",
-    "generate": "prisma generate",
+    "generate": "prisma generate --config prisma.generate.config.ts",
     "migrate": "node scripts/migrate.mjs",
     "contract": "node scripts/export-contract.mjs",
     "test": "npm run test:unit && npm run test:integration && npm run test:runtime",
