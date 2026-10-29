@@ -24,7 +24,7 @@ test('multi-instance profile requires stable deployment identity and shared vali
 test('client framework code is split into bounded evaluation chunks without changing server output', () => {
   const client = { optimization: { splitChunks: {} } };
   assert.equal(limitClientChunkSize(client, false), client);
-  assert.equal(client.optimization.splitChunks.maxSize, 100_000);
+  assert.equal(client.optimization.splitChunks.maxSize, 20_000);
   const server = { optimization: { splitChunks: {} } };
   limitClientChunkSize(server, true);
   assert.equal(server.optimization.splitChunks.maxSize, undefined);

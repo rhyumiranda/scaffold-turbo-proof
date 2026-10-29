@@ -26,10 +26,11 @@ export class ProjectsRepository {
   }
   // Optimistic concurrency in one statement: the row changes only while it still has the expected version.
   async renameIfVersion(ownerId: string, id: string, name: string, version: number): Promise<RenamedProjectRow | null> {
-    const result = await this.db.client.project.updateMany({
+    const [renamed] = await this.db.client.project.updateManyAndReturn({
       where: { id, ownerId, version },
       data: { name, version: { increment: 1 } },
+      select: { id: true, name: true, version: true },
     });
-    return result.count === 1 ? { id, name, version: version + 1 } : null;
+    return renamed ?? null;
   }
 }
