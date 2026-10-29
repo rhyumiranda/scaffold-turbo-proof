@@ -70,9 +70,7 @@ export default async function ProjectsPage({ searchParams }: Search) {
       <nav aria-label="Project pages">
         {currentPage > 1 && <a href={'/projects?page=' + (currentPage - 1)}>Previous page</a>}
         <span>Page {currentPage}</span>
-        {projects.length === 25 && currentPage < 401 && (
-          <a href={'/projects?page=' + (currentPage + 1)}>Next page</a>
-        )}
+        {projects.length === 25 && currentPage < 401 && <a href={'/projects?page=' + (currentPage + 1)}>Next page</a>}
       </nav>
     </>
   );
