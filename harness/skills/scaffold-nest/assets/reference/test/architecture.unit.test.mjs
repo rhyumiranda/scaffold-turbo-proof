@@ -58,6 +58,19 @@ test("architecture rejects a module that queries another module's model", () => 
 });
 test('architecture keeps raw SQL, the generated client and repositories inside their owners', () => {
   const check = (files) => checkArchitecture({ ...owned, ...files }, { schema, migrations: {} });
+  assert.deepEqual(
+    check({
+      'a/repository.ts':
+        'export const f = (db, id) => db.client.$queryRaw`UPDATE "Alpha" SET "id" = ${id} WHERE "id" = ${id} RETURNING "id"`;',
+    }),
+    [],
+  );
+  assert.ok(
+    check({
+      'a/repository.ts': 'export const f = (db) => db.client.$queryRaw`UPDATE "Beta" SET "id" = "id"`;',
+    }).some((x) => x.includes('mapped tables')),
+  );
+  assert.ok(check({ 'a/x.ts': 'db.client.$queryRaw`SELECT * FROM "Alpha"`;' }).some((x) => x.includes('raw SQL')));
   assert.ok(check({ 'a/x.ts': 'db.client.$queryRawUnsafe("SELECT 1");' }).some((x) => x.includes('raw SQL')));
   assert.ok(
     check({ 'a/x.ts': "import { PrismaClient } from '../generated/prisma/client.js';" }).some((x) =>
