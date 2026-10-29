@@ -23,6 +23,6 @@ type ChunkableWebpackConfig = {
 // Bound the shared Next runtime chunks so mobile browsers can yield between evaluations. The total-byte budget
 // still catches duplication; React DOM can remain larger because webpack cannot split a single module.
 export function limitClientChunkSize<T extends ChunkableWebpackConfig>(config: T, isServer: boolean): T {
-  if (!isServer && config.optimization?.splitChunks) config.optimization.splitChunks.maxSize = 100_000;
+  if (!isServer && config.optimization?.splitChunks) config.optimization.splitChunks.maxSize = 20_000;
   return config;
 }
