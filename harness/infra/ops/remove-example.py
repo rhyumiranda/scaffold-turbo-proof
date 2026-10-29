@@ -29,7 +29,7 @@ edit('apps/api/docs/architecture.md', [
     ("`src/projects/` owns controller", "A feature folder (none yet) owns controller"),
 ])
 edit('apps/web/docs/architecture.md', [
-    ("| Server-rendered list/detail | `src/app/projects/` | `services/projects.server.ts` |\n| Interactive form | `components/project-form.tsx` | `hooks/use-project-form.ts` |\n| Form state/focus and action choice | `hooks/use-project-form.ts` | `actions/projects.ts` |\n| Validated mutation | `actions/projects.ts` | server service |\n| Typed transport | `services/projects.server.ts` | external API |\n",
+    ("| Server-rendered list/detail | `src/app/projects/` | `services/projects.server.ts` |\n| Interactive form | `components/project-form.tsx` | `hooks/use-project-form.ts` |\n| Form state/focus and action choice | `hooks/use-project-form.ts` | `actions/projects.ts` |\n| Session preflight | `hooks/use-project-form.ts` | `services/session.browser.ts` |\n| Validated mutation | `actions/projects.ts` | server service |\n| Typed transport | `services/projects.server.ts` | external API |\n",
      "| None yet | `src/features/<name>/` | add your feature here |\n"),
     ("All feature paths above live under `src/features/projects/` except routes.", "Feature paths live under `src/features/<name>/` except routes (no feature yet)."),
 ])

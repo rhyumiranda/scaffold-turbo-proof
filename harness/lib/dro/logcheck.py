@@ -1,4 +1,5 @@
 import sys, json, collections
+from urllib.parse import urlparse
 # usage: logcheck.py <journey.json> <out.json> <api.stdout> <api.stderr> <web.stdout> <web.stderr>
 jf, outf, *files = sys.argv[1:]
 journey = json.load(open(jf)); why = []; rows = {"api": [], "web": []}; bad_lines = 0; total = 0
@@ -26,8 +27,11 @@ win_api = [o for o in rows["api"] if o.get("event") == "request.complete" and lo
 win_web = [o for o in rows["web"] if o.get("event") == "api.request" and lo <= o["time"] <= hi]
 if len(win_api) != len(win_web) or not win_api: why.append(f"journey window: API completions {len(win_api)} vs web api.request {len(win_web)}")
 ids = collections.Counter(o["requestId"] for o in win_api)
-cid = journey["createPosts"][0]["xRequestId"] if journey.get("createPosts") else None
-web_c = [o for o in rows["web"] if o.get("requestId") == cid]; api_c = [o for o in rows["api"] if o.get("requestId") == cid and o.get("event") == "request.complete"]
-if not cid or not web_c or not api_c or not any(o.get("method") == "POST" for o in api_c): why.append(f"create not traceable by request id {cid}: web records {len(web_c)}, API completions {len(api_c)}")
-res = {"ok": not why, "why": why[:10], "lines": total, "non_json": bad_lines, "window_api_completions": len(win_api), "window_web_api_requests": len(win_web), "create_request_id": cid, "create_web_records": len(web_c), "create_api_completions": len(api_c), "shared_ids_in_window": sum(1 for v in ids.values() if v > 1)}
+create_responses = [p for p in journey.get("createPosts", []) if urlparse(str(p.get("url", ""))).path.rstrip("/") == "/projects"]
+cid = create_responses[0].get("xRequestId") if len(create_responses) == 1 else None
+web_c = [o for o in rows["web"] if o.get("requestId") == cid and o.get("event") == "api.request" and o.get("operation") == "projects.create"]
+api_c = [o for o in rows["api"] if o.get("requestId") == cid and o.get("event") == "request.complete" and o.get("method") == "POST" and o.get("route") == "/v1/projects"]
+if len(create_responses) != 1: why.append(f"create journey has {len(create_responses)} POST /projects responses; expected exactly 1")
+elif not cid or len(web_c) != 1 or len(api_c) != 1: why.append(f"create not traceable by request id {cid}: web create records {len(web_c)}, API create completions {len(api_c)}")
+res = {"ok": not why, "why": why[:10], "lines": total, "non_json": bad_lines, "window_api_completions": len(win_api), "window_web_api_requests": len(win_web), "create_response_matches": len(create_responses), "create_request_id": cid, "create_web_records": len(web_c), "create_api_completions": len(api_c), "shared_ids_in_window": sum(1 for v in ids.values() if v > 1)}
 json.dump(res, open(outf, "w"), indent=2); print(json.dumps(res)); sys.exit(0 if res["ok"] else 1)
