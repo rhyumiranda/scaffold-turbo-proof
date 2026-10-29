@@ -3,6 +3,7 @@
 import { createRequire } from 'node:module';
 import { execSync } from 'node:child_process';
 import { writeFileSync, mkdirSync } from 'node:fs';
+import { loginRetryDecision, safeLoginUrl } from './login-retry.mjs';
 const req = createRequire(process.env.WS + '/apps/web/package.json');
 const { chromium } = req('@playwright/test');
 const { OUT, SCENARIO: sc } = process.env;
@@ -24,9 +25,11 @@ const browser = await chromium.launch();
 const ctx = await browser.newContext({ ignoreHTTPSErrors: true });
 const page = await ctx.newPage();
 // Chromium aborts navigations with ERR_NETWORK_CHANGED when Docker adds or removes a network interface on the runner.
-// Only that browser-side error restarts the whole sign-in (at most 3 retries, each recorded); any other error fails.
+// That error can leave the next navigation without a rendered provider form. Retry only that recorded aftermath,
+// at most three times; an absent form without a network change and every persistent failure still fail setup.
 const networkRetries = [];
 async function login(p) {
+  let sawNetworkChange = false;
   for (let a = 0; ; a++) {
     try {
       await p.goto(BASE + '/projects'); await p.waitForSelector('#username', { timeout: 30000 });
@@ -34,8 +37,11 @@ async function login(p) {
       await Promise.all([p.waitForURL(BASE + '/projects', { timeout: 30000 }), p.click('#kc-login')]);
       return;
     } catch (e) {
-      if (a === 3 || !/ERR_NETWORK_CHANGED/.test(String(e))) throw e;
-      networkRetries.push({ attempt: a + 1, at: new Date().toISOString() }); await sleep(2000);
+      const decision = loginRetryDecision(e, a, sawNetworkChange);
+      sawNetworkChange = decision.sawNetworkChange;
+      if (!decision.retry) throw e;
+      networkRetries.push({ attempt: a + 1, at: new Date().toISOString(), reason: decision.reason, url: safeLoginUrl(p.url()) });
+      await sleep(2000);
     }
   }
 }
