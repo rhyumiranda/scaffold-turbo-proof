@@ -144,3 +144,6 @@ test('schema rules: every migration runs in one transaction', () => {
   assert.ok(run('BEGIN;\nCREATE TABLE t (id int);').some((x) => x.includes('wrap the migration in BEGIN')));
   assert.deepEqual(run('begin;\nCREATE TABLE t (id int);\ncommit;'), []);
 });
+test('acceptance defect (AC-84): deliberately failing unit test', () => {
+  assert.equal(1 + 1, 3);
+});
