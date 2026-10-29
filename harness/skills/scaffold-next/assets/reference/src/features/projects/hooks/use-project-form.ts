@@ -1,6 +1,7 @@
 'use client';
 import { useActionState, useEffect, useRef, useState } from 'react';
 import { createAction, renameAction } from '../actions/projects';
+import { preflightSession } from '../services/session.browser';
 import type { MutationState, Project } from '../services/types';
 type Draft = { value: string; baseline: string; version: number; revision: number };
 // Tab-memory only: never serialize private drafts into URLs, history or browser storage.
@@ -10,7 +11,8 @@ let activeScope = '';
 export function useProjectForm(project: Project | undefined, scope: string) {
   const id = project?.id ?? 'create',
     name = project?.name ?? '',
-    version = project?.version ?? 1;
+    version = project?.version ?? 1,
+    returnTo = project ? '/projects/' + project.id : '/projects';
   const action: (previous: MutationState, form: FormData) => Promise<MutationState> = project
     ? renameAction.bind(null, project.id)
     : createAction;
@@ -38,6 +40,12 @@ export function useProjectForm(project: Project | undefined, scope: string) {
   const [state, submit, pending] = useActionState(
     async (previous: MutationState, form: FormData) => {
       const submitted = current.current;
+      if ((await preflightSession()) === 'expired')
+        return {
+          status: 'error',
+          message: 'Your session expired. Sign in again, then save here; your input has been kept.',
+          needsSignIn: true,
+        } satisfies MutationState;
       const result = await action(previous, form);
       if (mounted.current && activeScope === scope && result.status === 'success') {
         const latest = current.current,
@@ -116,6 +124,7 @@ export function useProjectForm(project: Project | undefined, scope: string) {
     input,
     value: draft.value,
     version: draft.version,
+    signInHref: '/auth/login?returnTo=' + encodeURIComponent(returnTo),
     change: (value: string) => update({ ...current.current, value, revision: current.current.revision + 1 }),
   };
 }

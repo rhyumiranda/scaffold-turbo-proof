@@ -3,6 +3,7 @@
 // Writes OUT/ids.json (action ids captured from the real form) for the replay stage.
 import { writeFileSync, readFileSync } from 'node:fs';
 import { request as httpRequest } from 'node:http';
+import { brotliDecompressSync, gunzipSync, inflateSync } from 'node:zlib';
 import { Asserts, env, OUT, mint, reqWeb, problemShape, sql } from './lib.mjs';
 const { chromium } = reqWeb('@playwright/test');
 const A = new Asserts('AC-41');
@@ -175,14 +176,29 @@ async function chunked(label, data, ctype) {
   const cookie = (await ctx.cookies(BASE)).map((c) => c.name + '=' + c.value).join('; ');
   const u = new URL(createAction.url);
   const res = await new Promise((resolve) => {
-    const rq = httpRequest({ host: '127.0.0.1', port: Number(u.port), path: u.pathname, method: 'POST', headers: { ...hdrs, host: u.host, cookie, 'content-type': ctype ?? 'multipart/form-data; boundary=' + boundary, 'transfer-encoding': 'chunked' } }, (r) => { let t = ''; r.on('data', (d) => (t += d)); r.on('end', () => resolve({ status: r.statusCode, body: t })); });
+    const rq = httpRequest({ host: '127.0.0.1', port: Number(u.port), path: u.pathname, method: 'POST', headers: { ...hdrs, host: u.host, cookie, 'content-type': ctype ?? 'multipart/form-data; boundary=' + boundary, 'transfer-encoding': 'chunked', 'accept-encoding': 'identity' } }, (r) => {
+      const chunks = [];
+      r.on('data', (d) => chunks.push(Buffer.from(d)));
+      r.on('end', () => resolve({ status: r.statusCode, headers: r.headers, body: Buffer.concat(chunks) }));
+    });
     rq.on('error', (e) => resolve({ status: 'socket-error ' + e.code })); rq.setTimeout(30000, () => rq.destroy());
     for (let i = 0; i < data.length; i += 65536) rq.write(data.subarray(i, i + 65536));
     rq.end();
   });
-  let result; try { result = JSON.parse(res.body); } catch {}
-  rows.push({ layer: 'web-action-direct', label, status: res.status, result });
-  A.check(`web action endpoint ${label}: 4xx with field-error payload (no content-length), never 5xx`, typeof res.status === 'number' && res.status >= 400 && res.status < 500 && typeof result?.fieldError === 'string', res);
+  let result, body = '', parseError;
+  try {
+    const encoding = String(res.headers?.['content-encoding'] ?? 'identity').toLowerCase();
+    const decoded = encoding === 'identity' ? res.body
+      : ['gzip', 'x-gzip'].includes(encoding) ? gunzipSync(res.body)
+      : encoding === 'deflate' ? inflateSync(res.body)
+      : encoding === 'br' ? brotliDecompressSync(res.body)
+      : (() => { throw new Error(`unsupported content-encoding: ${encoding}`); })();
+    body = decoded.toString('utf8');
+    result = JSON.parse(body);
+  } catch (error) { parseError = String(error?.message ?? error); }
+  const evidence = { status: res.status, headers: res.headers, result, parseError, body: body.slice(0, 300) };
+  rows.push({ layer: 'web-action-direct', label, ...evidence });
+  A.check(`web action endpoint ${label}: 4xx with field-error payload (no content-length), never 5xx`, typeof res.status === 'number' && res.status >= 400 && res.status < 500 && typeof result?.fieldError === 'string', evidence);
 }
 await chunked('name of 2 MB, chunked', craft([['name', 'x'.repeat(2 * 1024 * 1024)]]));
 await chunked('name of 900 KB, chunked', craft([['name', 'y'.repeat(900 * 1024)]]));

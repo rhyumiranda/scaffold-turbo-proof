@@ -39,3 +39,7 @@ Before initial publication, synchronized the paired reference's explicit problem
 ## 007 — Streamed not-found pages keep HTTP 200
 
 `/projects` and `/projects/[id]` stream behind `loading.tsx`, so the skeleton appears at once on slow API calls. Next.js sends the status line before the page decides an id is missing, foreign or malformed. Those pages therefore render the not-found view with HTTP 200 and a `noindex` robots tag (a "soft 404"). The API still answers 404, and these private pages are never indexed. Unknown URLs outside a streamed segment return a real 404. Remove the `loading.tsx` for a segment only if a client needs the HTTP status more than the instant loading state. Streaming also means these pages need JavaScript: without it the loading state is never replaced, so the forms are not offered as script-free fallbacks, and the proxy rejects script-free Server Action posts that carry unexpected arguments.
+
+## 008 — Session preflight preserves mutation drafts
+
+JavaScript project forms check `/auth/refresh` before dispatching a business mutation. A 401 keeps the controlled draft in the current tab and offers sign-in in a new tab; the user explicitly submits again after sign-in, so the app never retries a business write automatically. The Server Action still redirects an expired request to same-origin sign-in without writing. This is the authority for races, replay and clients without JavaScript; the preflight is only a user-experience guard.

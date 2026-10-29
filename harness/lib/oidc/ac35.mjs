@@ -55,12 +55,30 @@ try {
   const hdrs = Object.fromEntries(Object.entries(cap.headers).filter(([k]) => !['cookie', 'content-length', 'host'].includes(k)));
   const rr = await fetch(cap.url, { method: 'POST', headers: { ...hdrs, cookie: 'app_session=' + cookie }, body: Buffer.from(cap.body.toString('latin1').replace('AC35-capture', 'AC35-replay-after-logout'), 'latin1'), redirect: 'manual' });
   const rt = await rr.text(); const after = sql(env.DB, "SELECT count(*) FROM projects WHERE name='AC35-replay-after-logout'");
-  const actionRedirect = rr.headers.get('location') ?? rr.headers.get('x-action-redirect') ?? '';
-  rows.push({ label: 'replay Server Action with old cookie', status: rr.status, location: actionRedirect, result: (rt.match(/\{"status":"(?:error|success)"[^}]*\}/) || [null])[0] });
+  const location = rr.headers.get('location') ?? '';
+  const nextRedirect = rr.headers.get('x-action-redirect') ?? '';
+  const actionResult = (rt.match(/\{"status":"(?:error|success)"[^}]*\}/) || [null])[0];
+  const validLoginTarget = (value) => {
+    try {
+      const target = new URL(value, BASE);
+      return target.origin === new URL(BASE).origin && target.pathname === '/auth/login';
+    } catch { return false; }
+  };
+  const splitNextRedirect = (value) => {
+    const index = value.lastIndexOf(';');
+    return index < 0 ? { target: '', mode: '' } : { target: value.slice(0, index), mode: value.slice(index + 1) };
+  };
+  const next = splitNextRedirect(nextRedirect);
+  const directLoginResponse =
+    rr.status === 401 ||
+    (rr.status >= 300 && rr.status < 400 && validLoginTarget(location)) ||
+    (rr.status === 200 && ['push', 'replace'].includes(next.mode) && validLoginTarget(next.target));
+  const noProjectData = !/"status":"success"/.test(actionResult || '') && !/href="\/projects\/[0-9a-f-]{36}"/.test(rt);
+  rows.push({ label: 'replay Server Action with old cookie', status: rr.status, location, nextRedirect, result: actionResult });
   A.check(
     'replayed Server Action with the old cookie gets a direct sign-in redirect and writes nothing',
-    before === after && after === '0' && rr.status >= 300 && rr.status < 400 && /\/auth\/login(?:\?|$)/.test(actionRedirect),
-    { status: rr.status, location: actionRedirect, before, after },
+    before === after && after === '0' && directLoginResponse && noProjectData,
+    { status: rr.status, location, nextRedirect, before, after, actionResult, noProjectData },
   );
   // expiry
   const ctx2 = await browser.newContext(); const p2 = await ctx2.newPage();

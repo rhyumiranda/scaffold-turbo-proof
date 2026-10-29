@@ -11,6 +11,12 @@ ID=(-c user.name="Rhyu Miranda" -c user.email=rhyu.agapito.miranda@gmail.com)
 ok=1; why=""
 declare -A caught_by
 
+back_to_target() {
+  git -C "$WS" restore --staged --worktree -- . 2> /dev/null || return 1
+  git -C "$WS" switch -q --detach "$TARGET_SHA" || return 1
+  [ "$(git -C "$WS" rev-parse HEAD)" = "$TARGET_SHA" ]
+}
+
 # run_suites N: runs suites in order on the current branch; stops at the first failing one. Echoes the name or "none".
 run_suites() {
   local n="$1" s db l code
@@ -31,10 +37,41 @@ run_suites() {
 for n in 0 1 2 3 4 5 6 7 8 9 10; do
   mkdir -p "$EV/AC-74"; : > "$EV/AC-74/s$n-summary.txt"
   git -C "$WS" switch -q -c "sabotage/AC-74-$n" || { ok=0; why="$why s$n branch failed;"; continue; }
+  base_sha="$(git -C "$WS" rev-parse HEAD)"
+  case_error=""
   if [ "$n" != 0 ]; then
-    python3 "$HARNESS/infra/quality2/sabotage.py" "$n" "$WS" > "$EV/AC-74/s$n-apply.txt" 2>&1 || { ok=0; why="$why s$n patch did not apply;"; }
-    git -C "$WS" "${ID[@]}" commit -qam "test(AC-74): sabotage $n"
-    git -C "$WS" diff HEAD~1 HEAD > "$EV/AC-74/s$n.diff"
+    if ! python3 "$HARNESS/infra/quality2/sabotage.py" "$n" "$WS" > "$EV/AC-74/s$n-apply.txt" 2>&1; then
+      case_error="patch did not apply"
+    elif ! git -C "$WS" "${ID[@]}" commit -qam "test(AC-74): sabotage $n" > "$EV/AC-74/s$n-commit.txt" 2>&1; then
+      case_error="sabotage commit failed"
+    elif ! git -C "$WS" diff "$base_sha" HEAD > "$EV/AC-74/s$n.diff"; then
+      case_error="could not record sabotage diff"
+    elif [ ! -s "$EV/AC-74/s$n.diff" ]; then
+      case_error="sabotage diff was empty"
+    elif [ "$n" = 8 ] && { ! grep -Fq 'headers?: unknown;' "$EV/AC-74/s$n.diff" || ! grep -Fq 'headers: request.headers' "$EV/AC-74/s$n.diff"; }; then
+      case_error="header-leak sabotage diff was incomplete"
+    fi
+  fi
+  if [ -n "$case_error" ]; then
+    ok=0; why="$why s$n $case_error;"; caught_by[$n]="harness-error"
+    {
+      echo "== sabotage $n: harness-error"
+      echo "== reason"
+      echo "$case_error"
+      echo "== patch output"
+      cat "$EV/AC-74/s$n-apply.txt" 2>/dev/null
+      echo "== commit output"
+      cat "$EV/AC-74/s$n-commit.txt" 2>/dev/null
+      echo "== diff"
+      cat "$EV/AC-74/s$n.diff" 2>/dev/null
+    } > "$EV/AC-74/s$n-proof.txt"
+    echo "sabotage $n harness error: $case_error" | tee -a "$EV/AC-74/summary.txt"
+    if back_to_target; then
+      git -C "$WS" branch -q -D "sabotage/AC-74-$n"
+      continue
+    fi
+    why="$why could not return to target after s$n;"
+    break
   fi
   res="$(run_suites "$n" | tail -1)"
   caught_by[$n]="$res"
@@ -42,7 +79,7 @@ for n in 0 1 2 3 4 5 6 7 8 9 10; do
   { echo "== sabotage $n: caught by $res"; echo "== diff"; cat "$EV/AC-74/s$n.diff" 2>/dev/null; echo "== failing assertions"
     if [ "$res" = none ]; then echo "NOT CAUGHT: every suite stayed green"; else cat "$EV/AC-74/s$n-first-failures.txt" 2>/dev/null; fi; } > "$EV/AC-74/s$n-proof.txt"
   echo "sabotage $n caught by: $res" | tee -a "$EV/AC-74/summary.txt"
-  git -C "$WS" switch -q --detach "$TARGET_SHA" && [ "$(git -C "$WS" rev-parse HEAD)" = "$TARGET_SHA" ] || { ok=0; why="$why could not return to target after s$n;"; break; }
+  back_to_target || { ok=0; why="$why could not return to target after s$n;"; break; }
   git -C "$WS" branch -q -D "sabotage/AC-74-$n"
 done
 

@@ -1,7 +1,7 @@
 {
   "repository": "https://github.com/rhyumiranda/scaffold-turbo-proof.git",
-  "commit": "7ddb9704220b1b1afba438582abe414d05f78152",
-  "skillTree": "290b538aed2747c685c1cb8b7aaf4ab756317727a7e1fd4a95947256a5516b0f",
+  "commit": "db898a9842c24841e47049bb697fec6412e6c9e2",
+  "skillTree": "3d710289bd20957ef445c888e69d184a4ab2bdb8a284918c1102bba70049b785",
   "jobs": [
     "workspace",
     "github",

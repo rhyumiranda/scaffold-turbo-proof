@@ -4,11 +4,13 @@ Actors: an API-authenticated owner and another authenticated user. The example A
 
 Read: `/projects?page=N` → `listProjects(N)` → authenticated `GET /v1/projects?limit=25&offset=…` → validated safe DTOs → rendered list and pagination. Invalid page input produces not-found. An empty page still offers previous-page navigation.
 
-Create: form → `useProjectForm` → `createAction` → trim/validate name → `createProject` → real API → refresh list and expose the new resource link. Clear only the submitted draft on success; later edits remain. Blank/unsupported names focus the field; pending disables submit but permits further typing. The server remains responsible for duplicate semantics.
+Create: form → `useProjectForm` → session preflight → `createAction` → trim/validate name → `createProject` → real API → refresh list and expose the new resource link. Clear only the submitted draft on success; later edits remain. Blank/unsupported names focus the field; pending disables submit but permits further typing. The server remains responsible for duplicate semantics.
 
 Rename: detail form includes an expected version → action validates id/name/version → API atomic version check → refresh list/detail. A stale version produces a conflict message and preserves the submitted name. Retry after reviewing current persisted state; do not silently overwrite.
 
 Failure: missing/expired/forged credentials expose no rows. Provider session setup is unresolved, so the reference gives a truthful sign-in explanation, not a fake working login. API failures expose a recovery screen or safe inline message. Internal logs retain only operation/status/duration/correlation.
+
+Expiry recovery: a JavaScript submit first posts to `/auth/refresh`. A 401 keeps the controlled draft in the current tab, announces that the session expired and offers a new-tab sign-in link. After signing in, submitting again performs the mutation. Direct Server Action requests still redirect to same-origin sign-in without writing, covering races and clients without JavaScript.
 
 Tests: `tests/projects.spec.ts` covers real create/rename/reload, cross-user denial, forged credentials, conflict/input retention, pagination/history, CSP and selected keyboard/layout checks. It is not a full accessibility certification or provider-login test.
 

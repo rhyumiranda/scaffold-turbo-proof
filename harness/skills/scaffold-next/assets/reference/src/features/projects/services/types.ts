@@ -23,6 +23,7 @@ export const nameSchema = z
 export type MutationState = {
   status: 'idle' | 'error' | 'success';
   message: string;
+  needsSignIn?: boolean;
   fieldError?: string;
   inputValue?: string;
   createdId?: string;
