@@ -2,4 +2,5 @@
 // It re-exports server-only reads, so a client file importing it fails `pnpm check:arch`.
 export { ApiError, listProjects, readProject, projectDraftScope } from './services/projects.server';
 export { ProjectForm } from './components/project-form';
+export { ProjectNavigation } from './components/project-navigation';
 export type { Project } from './services/types';

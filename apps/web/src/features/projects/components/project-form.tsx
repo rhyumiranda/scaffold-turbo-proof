@@ -34,7 +34,11 @@ export function ProjectForm({ project, draftScope }: { project?: Project; draftS
           Sign in again (opens a new tab)
         </a>
       )}
-      {state.createdId && <a href={'/projects/' + state.createdId}>Open created project</a>}
+      {state.createdId && (
+        <a data-project-navigation href={'/projects/' + state.createdId}>
+          Open created project
+        </a>
+      )}
     </form>
   );
 }
