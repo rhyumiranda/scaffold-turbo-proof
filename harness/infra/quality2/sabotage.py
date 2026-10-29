@@ -6,8 +6,8 @@ def edit(path, old, new):
     open(p, 'w').write(s.replace(old, new, 1))
 if n == 1:  # read query loses the owner_id condition
     edit('apps/api/src/projects/repository.ts', "where: { id, ownerId }, select: columns", "where: { id }, select: columns")
-elif n == 2:  # rename UPDATE loses the version condition (parameter stays referenced so lint stays clean)
-    edit('apps/api/src/projects/repository.ts', "where: { id, ownerId, version },\n        data: { name, version: { increment: 1 } },", "where: { id, ownerId },\n        data: { name, version: { increment: version - version + 1 } },")
+elif n == 2:  # rename UPDATE loses the version condition
+    edit('apps/api/src/projects/repository.ts', ' AND "version" = ${version}', '')
 elif n == 3:
     edit('apps/api/src/app.ts', 'forbidNonWhitelisted: true,', 'forbidNonWhitelisted: false,')
 elif n == 4:
