@@ -31,12 +31,12 @@ git -C "$CLONE" config user.name "Rhyu Miranda"; git -C "$CLONE" config user.ema
 # wait_run <event> <sha> <file-prefix>   Waits for the "Verify workspace" run of that commit, saves its jobs/steps.
 wait_run() {
   local event="$1" sha="$2" pre="$3" id=""
-  for _ in $(seq 1 90); do
+  for _ in $(seq 1 4); do
     id="$(gh run list --repo $REPO --workflow "Verify workspace" --commit "$sha" --event "$event" --json databaseId --jq '.[0].databaseId // empty')"
-    [ -n "$id" ] && break; sleep 10
+    [ -n "$id" ] && break; sleep 300
   done
   [ -n "$id" ] || { echo "no $event run for $sha"; return 1; }
-  gh run watch "$id" --repo $REPO --interval 30 > /dev/null 2>&1
+  gh run watch "$id" --repo $REPO --interval 300 > /dev/null 2>&1
   gh run view "$id" --repo $REPO --json databaseId,event,headSha,status,conclusion,createdAt,updatedAt,startedAt,url,jobs > "$pre-run-$id.json"
   jq -r '.jobs[].steps[] | "\(.number)\t\(.conclusion)\t\(.name)"' "$pre-run-$id.json" > "$pre-run-$id-steps.tsv"
   gh run view "$id" --repo $REPO --log-failed > "$pre-run-$id-failed.log" 2>&1 || true
