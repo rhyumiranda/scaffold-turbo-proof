@@ -1,4 +1,4 @@
-import { ApiError, ProjectForm, listProjects, projectDraftScope, ProjectLink } from '@/features/projects';
+import { ApiError, ProjectForm, listProjects, projectDraftScope } from '@/features/projects';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 type Search = { searchParams: Promise<{ page?: string | string[] }> };
@@ -61,17 +61,17 @@ export default async function ProjectsPage({ searchParams }: Search) {
         <ul>
           {projects.map((project) => (
             <li key={project.id}>
-              <ProjectLink href={'/projects/' + project.id}>{project.name}</ProjectLink>
+              <a href={'/projects/' + project.id}>{project.name}</a>
               <span>Version {project.version}</span>
             </li>
           ))}
         </ul>
       )}
       <nav aria-label="Project pages">
-        {currentPage > 1 && <ProjectLink href={'/projects?page=' + (currentPage - 1)}>Previous page</ProjectLink>}
+        {currentPage > 1 && <a href={'/projects?page=' + (currentPage - 1)}>Previous page</a>}
         <span>Page {currentPage}</span>
         {projects.length === 25 && currentPage < 401 && (
-          <ProjectLink href={'/projects?page=' + (currentPage + 1)}>Next page</ProjectLink>
+          <a href={'/projects?page=' + (currentPage + 1)}>Next page</a>
         )}
       </nav>
     </>

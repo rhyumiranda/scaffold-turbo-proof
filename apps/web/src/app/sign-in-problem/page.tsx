@@ -1,4 +1,3 @@
-import Link from 'next/link';
 export const metadata = { title: 'Sign-in problem' };
 const messages = {
   unavailable: 'The sign-in service is not responding. Nothing was lost; try again in a moment.',
@@ -11,7 +10,7 @@ export default async function SignInProblem({ searchParams }: { searchParams: Pr
       <h1>Sign-in problem</h1>
       <p role="alert">{messages[reason]}</p>
       <p>
-        <a href="/auth/login">Try signing in again</a> or <Link href="/">go to the home page</Link>.
+        <a href="/auth/login">Try signing in again</a> or <a href="/">go to the home page</a>.
       </p>
     </>
   );
