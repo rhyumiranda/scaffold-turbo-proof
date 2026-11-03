@@ -3,7 +3,7 @@
 # Every stage starts from the same digest-pinned base image; Dependabot's docker ecosystem proposes digest updates.
 # Stages repeat the same setup lines instead of inheriting from a named stage, so every FROM line carries the digest.
 # Identical instructions on the same base share one build-cache layer, so the repetition costs no build time.
-FROM node:24.22.1-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS pruner
+FROM node:24.22.2-alpine@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85 AS pruner
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 # Corepack verifies the pinned pnpm release and runs no install scripts. `npm install --global --ignore-scripts pnpm`
 # leaves pnpm 12 as a non-executable placeholder, and turbo then fails to spawn it with "Exec format error".
@@ -12,7 +12,7 @@ WORKDIR /repo
 COPY . .
 RUN turbo prune @repo/api --docker
 
-FROM node:24.22.1-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS builder
+FROM node:24.22.2-alpine@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85 AS builder
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 RUN corepack enable pnpm && corepack prepare pnpm@12.15.0 --activate && npm install --global --ignore-scripts turbo@2.11.10
 WORKDIR /repo
@@ -42,7 +42,7 @@ RUN pnpm --filter @repo/api deploy --prod /runtime/full \
   && find /runtime/migrate/node_modules -type f \( -name '*.ts' ! -name '*.d.ts' -o -name '*.map' \) -delete \
   && test -x /runtime/migrate/prisma-schema-engine
 
-FROM node:24.22.1-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS migrate
+FROM node:24.22.2-alpine@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85 AS migrate
 # The runtime needs only node: remove the bundled package managers (smaller image, and their own dependencies
 # carry CVEs that the application never uses).
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-* \
@@ -65,7 +65,7 @@ USER node
 # `prisma migrate deploy`, after the edited-history check (scripts/migrate.mjs). Requires DATABASE_URL.
 CMD ["node", "scripts/migrate.mjs"]
 
-FROM node:24.22.1-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS runtime
+FROM node:24.22.2-alpine@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85 AS runtime
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-* \
   /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /usr/local/bin/yarn /usr/local/bin/yarnpkg
 ENV NODE_ENV=production
