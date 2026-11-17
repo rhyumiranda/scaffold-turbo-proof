@@ -32,8 +32,8 @@
     "sbom": "node scripts/sbom.mjs"
   },
   "devDependencies": {
-    "turbo": "2.11.10",
-    "prettier": "3.9.10",
+    "turbo": "2.11.11",
+    "prettier": "3.10.1",
     "secretlint": "catalog:",
     "@secretlint/secretlint-rule-preset-recommend": "catalog:"
   },
