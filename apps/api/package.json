@@ -32,11 +32,11 @@
     "test:e2e": "node --import ./test/test-database.mjs test/with-web.mjs ../web"
   },
   "dependencies": {
-    "@nestjs/common": "12.2.0",
-    "@nestjs/core": "12.2.0",
-    "@nestjs/platform-express": "12.2.0",
-    "@nestjs/swagger": "12.0.4",
-    "@nestjs/throttler": "6.7.1",
+    "@nestjs/common": "12.6.0",
+    "@nestjs/core": "12.6.0",
+    "@nestjs/platform-express": "12.6.0",
+    "@nestjs/swagger": "12.1.2",
+    "@nestjs/throttler": "6.8.0",
     "@opentelemetry/api": "1.10.0",
     "@opentelemetry/exporter-metrics-otlp-http": "0.300.0",
     "@opentelemetry/exporter-trace-otlp-http": "0.300.0",
